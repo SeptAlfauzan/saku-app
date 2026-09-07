@@ -2,6 +2,7 @@ package com.septaalfauzan.saku.domain.usecase
 
 import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionSource
+import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.repository.TransactionRepository
 import kotlin.time.Clock
@@ -30,6 +31,8 @@ class AddTransaction(private val repository: TransactionRepository) {
             description = description,
             source = TransactionSource.MANUAL,
             sourcePackage = null,
+            status = TransactionStatus.CONFIRMED,
+            confidence = 0.0,
             occurredAt = occurredAt,
             createdAt = now,
             updatedAt = now,

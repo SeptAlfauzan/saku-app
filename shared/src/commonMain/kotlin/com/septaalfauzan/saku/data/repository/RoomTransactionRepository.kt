@@ -6,7 +6,9 @@ import com.septaalfauzan.saku.data.database.CategorySeed
 import com.septaalfauzan.saku.data.entity.toDomain
 import com.septaalfauzan.saku.data.entity.toEntity
 import com.septaalfauzan.saku.domain.model.Category
+import com.septaalfauzan.saku.domain.model.DuplicateKey
 import com.septaalfauzan.saku.domain.model.Transaction
+import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -58,4 +60,24 @@ class RoomTransactionRepository(
     override suspend fun delete(id: String) {
         transactionDao.getById(id)?.let { transactionDao.delete(it) }
     }
+
+    override fun observePending(): Flow<List<Transaction>> =
+        transactionDao.observePending().map { list -> list.map { it.toDomain() } }
+
+    override suspend fun setStatus(id: String, status: TransactionStatus) {
+        transactionDao.setStatus(id, status.name)
+    }
+
+    override suspend fun findRecentDuplicate(
+        key: DuplicateKey,
+        withinStartMillis: Long,
+        withinEndMillis: Long,
+    ): Transaction? =
+        transactionDao.findRecentDuplicate(
+            sourcePackage = key.sourcePackage,
+            type = key.type.name,
+            amount = key.amount,
+            startMillis = withinStartMillis,
+            endMillis = withinEndMillis,
+        )?.toDomain()
 }

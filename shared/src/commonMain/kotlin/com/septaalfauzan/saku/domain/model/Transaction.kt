@@ -14,6 +14,8 @@ data class Transaction(
     val description: String?,
     val source: TransactionSource,
     val sourcePackage: String?,
+    val status: TransactionStatus,
+    val confidence: Double,
     @Serializable(with = InstantMillisSerializer::class)
     val occurredAt: Instant,
     @Serializable(with = InstantMillisSerializer::class)

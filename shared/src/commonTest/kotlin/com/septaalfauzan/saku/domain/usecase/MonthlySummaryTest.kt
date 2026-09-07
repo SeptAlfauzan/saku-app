@@ -2,6 +2,7 @@ package com.septaalfauzan.saku.domain.usecase
 
 import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionSource
+import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.domain.model.TransactionType
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -26,6 +27,8 @@ class MonthlySummaryTest {
         description = null,
         source = TransactionSource.MANUAL,
         sourcePackage = null,
+        status = TransactionStatus.CONFIRMED,
+        confidence = 0.0,
         occurredAt = Instant.fromEpochMilliseconds(epochMs),
         createdAt = Instant.fromEpochMilliseconds(epochMs),
         updatedAt = Instant.fromEpochMilliseconds(epochMs),

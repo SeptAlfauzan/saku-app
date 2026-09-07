@@ -30,4 +30,22 @@ interface TransactionDao {
             "WHERE type = :type AND occurredAtMillis BETWEEN :startMillis AND :endMillis"
     )
     suspend fun amountSumBetween(type: String, startMillis: Long, endMillis: Long): Long
+
+    @Query("SELECT * FROM transactions WHERE status = 'PENDING_REVIEW' ORDER BY occurredAtMillis DESC")
+    fun observePending(): Flow<List<TransactionEntity>>
+
+    @Query("UPDATE transactions SET status = :status WHERE id = :id")
+    suspend fun setStatus(id: String, status: String)
+
+    @Query(
+        "SELECT * FROM transactions WHERE sourcePackage = :sourcePackage AND type = :type AND amount = :amount " +
+            "AND occurredAtMillis BETWEEN :startMillis AND :endMillis LIMIT 1",
+    )
+    suspend fun findRecentDuplicate(
+        sourcePackage: String,
+        type: String,
+        amount: Long,
+        startMillis: Long,
+        endMillis: Long,
+    ): TransactionEntity?
 }

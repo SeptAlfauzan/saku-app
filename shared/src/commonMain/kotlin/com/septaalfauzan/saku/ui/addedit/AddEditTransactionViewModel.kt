@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionSource
+import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.usecase.AddTransaction
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
@@ -64,6 +65,7 @@ class AddEditTransactionViewModel(
     val events: StateFlow<AddEditEvent?> = eventFlow
 
     private var existingCreatedAt: Instant? = null
+    private var existingTransaction: Transaction? = null
 
     private val fieldState = MutableStateFlow(AddEditFormState())
 
@@ -96,6 +98,7 @@ class AddEditTransactionViewModel(
                 val existing = observeTransactions().first().firstOrNull { it.id == transactionId }
                 if (existing != null) {
                     existingCreatedAt = existing.createdAt
+                    existingTransaction = existing
                     fieldState.value = fieldState.value.copy(
                         editingId = existing.id,
                         type = existing.type,
@@ -165,8 +168,10 @@ class AddEditTransactionViewModel(
                         merchant = state.merchant.ifBlank { null },
                         categoryId = state.categoryId,
                         description = state.note.ifBlank { null },
-                        source = TransactionSource.MANUAL,
-                        sourcePackage = null,
+                        source = existingTransaction?.source ?: TransactionSource.MANUAL,
+                        sourcePackage = existingTransaction?.sourcePackage,
+                        status = TransactionStatus.CONFIRMED,
+                        confidence = existingTransaction?.confidence ?: 0.0,
                         occurredAt = occurredAt,
                         createdAt = existingCreatedAt ?: Clock.System.now(),
                         updatedAt = Clock.System.now(),

@@ -19,6 +19,8 @@ class ModelSerializationTest {
         description = "Monthly",
         source = TransactionSource.MANUAL,
         sourcePackage = null,
+        status = TransactionStatus.CONFIRMED,
+        confidence = 0.0,
         occurredAt = Instant.fromEpochMilliseconds(1_000_000_000_000),
         createdAt = Instant.fromEpochMilliseconds(1_000_000_000_100),
         updatedAt = Instant.fromEpochMilliseconds(1_000_000_000_100),
@@ -48,5 +50,16 @@ class ModelSerializationTest {
     fun instantSerializerStoresEpochMillis() {
         val wire = json.encodeToString(InstantMillisSerializer, sampleTransaction().occurredAt)
         assertEquals("1000000000000", wire)
+    }
+
+    @Test
+    fun notificationTransactionSerializesWithStatusAndConfidence() {
+        val tx = sampleTransaction().copy(
+            source = TransactionSource.NOTIFICATION,
+            status = TransactionStatus.PENDING_REVIEW,
+            confidence = 0.70,
+        )
+        val decoded = json.decodeFromString(Transaction.serializer(), json.encodeToString(Transaction.serializer(), tx))
+        assertEquals(tx, decoded)
     }
 }

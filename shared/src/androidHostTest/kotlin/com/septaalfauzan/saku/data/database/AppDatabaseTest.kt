@@ -6,12 +6,20 @@ import com.septaalfauzan.saku.data.dao.CategoryDao
 import com.septaalfauzan.saku.data.dao.TransactionDao
 import com.septaalfauzan.saku.data.entity.CategoryEntity
 import com.septaalfauzan.saku.data.entity.TransactionEntity
+import com.septaalfauzan.saku.data.repository.RoomNotificationSettingsRepository
 import com.septaalfauzan.saku.data.repository.RoomTransactionRepository
+import com.septaalfauzan.saku.domain.model.DuplicateKey
+import com.septaalfauzan.saku.domain.model.Transaction
+import com.septaalfauzan.saku.domain.model.TransactionSource
+import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.domain.model.TransactionType
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class AppDatabaseTest {
 
@@ -20,6 +28,28 @@ class AppDatabaseTest {
             factory = { AppDatabaseConstructor.initialize() },
         ).setDriver(BundledSQLiteDriver())
             .build()
+
+    private fun tx(
+        id: String,
+        type: TransactionType,
+        amount: Long,
+        status: TransactionStatus = TransactionStatus.CONFIRMED,
+    ) = Transaction(
+        id = id,
+        type = type,
+        amount = amount,
+        currency = "IDR",
+        merchant = null,
+        categoryId = null,
+        description = null,
+        source = TransactionSource.MANUAL,
+        sourcePackage = null,
+        status = status,
+        confidence = 0.0,
+        occurredAt = Instant.fromEpochMilliseconds(1_720_000_000_000),
+        createdAt = Instant.fromEpochMilliseconds(1_720_000_000_000),
+        updatedAt = Instant.fromEpochMilliseconds(1_720_000_000_000),
+    )
 
     @Test
     fun transactionCrudRoundTrips() = runTest {
@@ -35,6 +65,8 @@ class AppDatabaseTest {
             description = null,
             source = "MANUAL",
             sourcePackage = null,
+            status = "CONFIRMED",
+            confidence = 0.0,
             occurredAtMillis = 1_720_000_000_000,
             createdAtMillis = 1_720_000_000_000,
             updatedAtMillis = 1_720_000_000_000,
@@ -52,8 +84,20 @@ class AppDatabaseTest {
     fun transactionFlowEmitsSortedByOccurredAtDesc() = runTest {
         val db = buildInMemory()
         val dao = db.transactionDao()
-        val older = TransactionEntity("a", "EXPENSE", 1, "IDR", null, null, null, "MANUAL", null, occurredAtMillis = 1_000, createdAtMillis = 1_000, updatedAtMillis = 1_000)
-        val newer = TransactionEntity("b", "INCOME", 2, "IDR", null, null, null, "MANUAL", null, occurredAtMillis = 2_000, createdAtMillis = 2_000, updatedAtMillis = 2_000)
+        val older = TransactionEntity(
+            id = "a", type = "EXPENSE", amount = 1, currency = "IDR",
+            merchant = null, categoryId = null, description = null,
+            source = "MANUAL", sourcePackage = null,
+            status = "CONFIRMED", confidence = 0.0,
+            occurredAtMillis = 1_000, createdAtMillis = 1_000, updatedAtMillis = 1_000,
+        )
+        val newer = TransactionEntity(
+            id = "b", type = "INCOME", amount = 2, currency = "IDR",
+            merchant = null, categoryId = null, description = null,
+            source = "MANUAL", sourcePackage = null,
+            status = "CONFIRMED", confidence = 0.0,
+            occurredAtMillis = 2_000, createdAtMillis = 2_000, updatedAtMillis = 2_000,
+        )
         dao.insert(older)
         dao.insert(newer)
         val emitted = dao.observeAll().first()
@@ -75,9 +119,33 @@ class AppDatabaseTest {
     fun amountSumBetweenReturnsOnlyMatchingTypeAndWindow() = runTest {
         val db = buildInMemory()
         val dao = db.transactionDao()
-        dao.insert(TransactionEntity("a", "EXPENSE", 10_000, "IDR", null, null, null, "MANUAL", null, occurredAtMillis = 1_000, createdAtMillis = 1_000, updatedAtMillis = 1_000))
-        dao.insert(TransactionEntity("b", "EXPENSE", 5_000, "IDR", null, null, null, "MANUAL", null, occurredAtMillis = 2_000, createdAtMillis = 2_000, updatedAtMillis = 2_000))
-        dao.insert(TransactionEntity("c", "INCOME", 99_000, "IDR", null, null, null, "MANUAL", null, occurredAtMillis = 1_500, createdAtMillis = 1_500, updatedAtMillis = 1_500))
+        dao.insert(
+            TransactionEntity(
+                id = "a", type = "EXPENSE", amount = 10_000, currency = "IDR",
+                merchant = null, categoryId = null, description = null,
+                source = "MANUAL", sourcePackage = null,
+                status = "CONFIRMED", confidence = 0.0,
+                occurredAtMillis = 1_000, createdAtMillis = 1_000, updatedAtMillis = 1_000,
+            ),
+        )
+        dao.insert(
+            TransactionEntity(
+                id = "b", type = "EXPENSE", amount = 5_000, currency = "IDR",
+                merchant = null, categoryId = null, description = null,
+                source = "MANUAL", sourcePackage = null,
+                status = "CONFIRMED", confidence = 0.0,
+                occurredAtMillis = 2_000, createdAtMillis = 2_000, updatedAtMillis = 2_000,
+            ),
+        )
+        dao.insert(
+            TransactionEntity(
+                id = "c", type = "INCOME", amount = 99_000, currency = "IDR",
+                merchant = null, categoryId = null, description = null,
+                source = "MANUAL", sourcePackage = null,
+                status = "CONFIRMED", confidence = 0.0,
+                occurredAtMillis = 1_500, createdAtMillis = 1_500, updatedAtMillis = 1_500,
+            ),
+        )
         assertEquals(15_000L, dao.amountSumBetween("EXPENSE", 0L, 3_000L))
         assertEquals(5_000L, dao.amountSumBetween("EXPENSE", 1_500L, 3_000L))
         db.close()
@@ -116,6 +184,57 @@ class AppDatabaseTest {
         repo.observeCategories().first()
         repo.observeCategories().first()
         assertEquals(14L, catDao.count())
+        db.close()
+    }
+
+    @Test
+    fun observePendingReturnsOnlyPendingReviews() = runTest {
+        val db = buildInMemory()
+        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        repo.insert(tx("pending1", TransactionType.EXPENSE, 50_000, status = TransactionStatus.PENDING_REVIEW).copy(sourcePackage = "com.bca"))
+        repo.insert(tx("confirmed1", TransactionType.INCOME, 1_000, status = TransactionStatus.CONFIRMED).copy(sourcePackage = "com.bca"))
+        assertContentEquals(listOf("pending1"), repo.observePending().first().map { it.id })
+        db.close()
+    }
+
+    @Test
+    fun setStatusMovesTransaction() = runTest {
+        val db = buildInMemory()
+        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        repo.insert(tx("p1", TransactionType.EXPENSE, 10_000, status = TransactionStatus.PENDING_REVIEW))
+        repo.setStatus("p1", TransactionStatus.CONFIRMED)
+        assertTrue(repo.observePending().first().isEmpty())
+        db.close()
+    }
+
+    @Test
+    fun findRecentDuplicateFindsWithinWindow() = runTest {
+        val db = buildInMemory()
+        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        val existing = tx("dup1", TransactionType.EXPENSE, 150_000, status = TransactionStatus.CONFIRMED)
+            .copy(sourcePackage = "com.bca", occurredAt = Instant.fromEpochMilliseconds(1_000_000_000_000))
+        repo.insert(existing)
+        val hit = repo.findRecentDuplicate(
+            DuplicateKey("com.bca", TransactionType.EXPENSE, 150_000),
+            withinStartMillis = 1_000_000_000_000 - 120_000,
+            withinEndMillis = 1_000_000_000_000 + 120_000,
+        )
+        assertEquals("dup1", hit?.id)
+        db.close()
+    }
+
+    @Test
+    fun settingsRepositorySeedsAndFlows() = runTest {
+        val db = buildInMemory()
+        val repo = RoomNotificationSettingsRepository(db.sourceDao(), db.settingsDao())
+        assertEquals(false, repo.observeTrackingEnabled().first())
+        assertEquals(true, repo.observeAutoConfirm().first())
+        val sources = repo.observeSources().first()
+        assertEquals(4, sources.size)
+        repo.setSourceEnabled("com.bca", false)
+        assertEquals(false, repo.observeSources().first().first { it.packageName == "com.bca" }.enabled)
+        repo.setTrackingEnabled(true)
+        assertEquals(true, repo.observeTrackingEnabled().first())
         db.close()
     }
 }

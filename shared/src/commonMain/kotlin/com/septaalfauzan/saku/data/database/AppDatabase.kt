@@ -6,18 +6,28 @@ import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.septaalfauzan.saku.data.dao.CategoryDao
+import com.septaalfauzan.saku.data.dao.NotificationSourceDao
+import com.septaalfauzan.saku.data.dao.SettingsDao
 import com.septaalfauzan.saku.data.dao.TransactionDao
 import com.septaalfauzan.saku.data.entity.CategoryEntity
+import com.septaalfauzan.saku.data.entity.NotificationSourceEntity
+import com.septaalfauzan.saku.data.entity.SettingsEntity
 import com.septaalfauzan.saku.data.entity.TransactionEntity
 import kotlinx.coroutines.Dispatchers
 
 const val DATABASE_NAME = "saku.db"
 
-@Database(entities = [TransactionEntity::class, CategoryEntity::class], version = 1, exportSchema = true)
+@Database(
+    entities = [TransactionEntity::class, CategoryEntity::class, NotificationSourceEntity::class, SettingsEntity::class],
+    version = 2,
+    exportSchema = true,
+)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun sourceDao(): NotificationSourceDao
+    abstract fun settingsDao(): SettingsDao
 }
 
 @Suppress("KotlinNoActualForExpect")
@@ -28,6 +38,7 @@ expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
 expect fun createDatabaseBuilder(): RoomDatabase.Builder<AppDatabase>
 
 fun buildRoomDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase =
-    builder.setDriver(BundledSQLiteDriver())
+    builder.addMigrations(MIGRATION_1_2)
+        .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.Default)
         .build()
