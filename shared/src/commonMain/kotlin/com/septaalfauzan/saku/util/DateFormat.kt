@@ -10,8 +10,16 @@ private val indonesianMonthAbbr = mapOf(
     7 to "Jul", 8 to "Agu", 9 to "Sep", 10 to "Okt", 11 to "Nov", 12 to "Des",
 )
 
+private val englishMonthNames = listOf(
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+)
+
 fun formatShortDate(millis: Long, zone: TimeZone = TimeZone.currentSystemDefault()): String {
     val local = Instant.fromEpochMilliseconds(millis).toLocalDateTime(zone)
     val month = indonesianMonthAbbr.getValue(local.month.number)
     return "${local.day} $month ${local.year}"
 }
+
+fun monthLabel(year: Int, monthNumber: Int): String =
+    "${englishMonthNames[monthNumber - 1]} $year"

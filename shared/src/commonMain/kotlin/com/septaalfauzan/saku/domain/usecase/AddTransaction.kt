@@ -2,6 +2,7 @@ package com.septaalfauzan.saku.domain.usecase
 
 import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionSource
+import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.repository.TransactionRepository
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -10,7 +11,7 @@ import kotlin.uuid.Uuid
 class AddTransaction(private val repository: TransactionRepository) {
 
     operator fun invoke(
-        type: com.septaalfauzan.saku.domain.model.TransactionType,
+        type: TransactionType,
         amount: Long,
         currency: String = "IDR",
         merchant: String?,

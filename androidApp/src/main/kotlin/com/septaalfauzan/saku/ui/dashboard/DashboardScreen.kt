@@ -31,7 +31,7 @@ fun DashboardRoute(onAdd: () -> Unit) {
     val state by viewModel.uiState.collectAsState()
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("September", style = MaterialTheme.typography.headlineSmall)
+        Text(state.monthLabel, style = MaterialTheme.typography.headlineSmall)
 
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),

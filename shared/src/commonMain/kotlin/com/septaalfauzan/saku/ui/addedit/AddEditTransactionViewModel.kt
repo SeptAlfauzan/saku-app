@@ -63,6 +63,8 @@ class AddEditTransactionViewModel(
 
     val events: StateFlow<AddEditEvent?> = eventFlow
 
+    private var existingCreatedAt: Instant? = null
+
     private val fieldState = MutableStateFlow(AddEditFormState())
 
     val uiState: StateFlow<AddEditUiState> = combine(
@@ -93,6 +95,7 @@ class AddEditTransactionViewModel(
             viewModelScope.launch {
                 val existing = observeTransactions().first().firstOrNull { it.id == transactionId }
                 if (existing != null) {
+                    existingCreatedAt = existing.createdAt
                     fieldState.value = fieldState.value.copy(
                         editingId = existing.id,
                         type = existing.type,
@@ -165,7 +168,7 @@ class AddEditTransactionViewModel(
                         source = TransactionSource.MANUAL,
                         sourcePackage = null,
                         occurredAt = occurredAt,
-                        createdAt = Clock.System.now(),
+                        createdAt = existingCreatedAt ?: Clock.System.now(),
                         updatedAt = Clock.System.now(),
                     )
                 )

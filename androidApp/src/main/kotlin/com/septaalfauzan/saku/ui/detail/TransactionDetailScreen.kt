@@ -70,7 +70,7 @@ fun DetailRoute(transactionId: String, onEdit: () -> Unit, onDeleted: () -> Unit
         Spacer(Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth()) {
             Text("Source", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-            Text("Manual", style = MaterialTheme.typography.bodyMedium)
+            Text(transaction.source.name.lowercase().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(Modifier.weight(1f))
         OutlinedButton(onClick = viewModel::requestEdit, modifier = Modifier.fillMaxWidth()) {
