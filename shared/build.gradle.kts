@@ -72,6 +72,8 @@ kotlin {
         }
         getByName("androidHostTest").dependencies {
             implementation(libs.androidx.sqliteBundledJvm)
+            implementation(libs.androidx.testCore)
+            implementation(libs.robolectric)
         }
     }
 }
