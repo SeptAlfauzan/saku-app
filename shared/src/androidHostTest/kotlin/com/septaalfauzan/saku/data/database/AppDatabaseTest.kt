@@ -6,6 +6,8 @@ import com.septaalfauzan.saku.data.dao.CategoryDao
 import com.septaalfauzan.saku.data.dao.TransactionDao
 import com.septaalfauzan.saku.data.entity.CategoryEntity
 import com.septaalfauzan.saku.data.entity.TransactionEntity
+import com.septaalfauzan.saku.data.repository.RoomTransactionRepository
+import com.septaalfauzan.saku.domain.model.TransactionType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -85,6 +87,35 @@ class AppDatabaseTest {
     fun inMemoryDatabaseIsFresh() = runTest {
         val db = buildInMemory()
         assertEquals(0L, db.categoryDao().count())
+        db.close()
+    }
+
+    @Test
+    fun repositorySeedsAndReturnsAllCategories() = runTest {
+        val db = buildInMemory()
+        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        val categories = repo.observeCategories().first()
+        val expenseIds = categories.filter { it.type == TransactionType.EXPENSE }.map { it.id }
+        val incomeIds = categories.filter { it.type == TransactionType.INCOME }.map { it.id }
+        assertEquals(
+            listOf("food", "transport", "shopping", "bills", "entertainment", "health", "education", "insurance", "other_expense"),
+            expenseIds,
+        )
+        assertEquals(
+            listOf("salary", "freelance", "cashback", "interest", "other_income"),
+            incomeIds,
+        )
+        db.close()
+    }
+
+    @Test
+    fun repositorySeedsOnlyOnce() = runTest {
+        val db = buildInMemory()
+        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        val catDao = db.categoryDao()
+        repo.observeCategories().first()
+        repo.observeCategories().first()
+        assertEquals(14L, catDao.count())
         db.close()
     }
 }
