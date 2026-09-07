@@ -41,6 +41,6 @@ val appModule = module {
         TransactionDetailViewModel(get(), get(), params.getOrNull() ?: "")
     }
     viewModel { params ->
-        AddEditTransactionViewModel(get(), get(), get(), params.getOrNull())
+        AddEditTransactionViewModel(get(), get(), get(), get(), params.getOrNull<String>())
     }
 }

@@ -8,6 +8,7 @@ import com.septaalfauzan.saku.domain.model.TransactionSource
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.usecase.AddTransaction
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
+import com.septaalfauzan.saku.domain.usecase.ObserveTransactions
 import com.septaalfauzan.saku.domain.usecase.UpdateTransaction
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -51,16 +53,17 @@ sealed interface AddEditEvent {
 
 class AddEditTransactionViewModel(
     private val observeCategories: ObserveCategories,
+    private val observeTransactions: ObserveTransactions,
     private val addTransaction: AddTransaction,
     private val updateTransaction: UpdateTransaction,
-    initialTransaction: Transaction? = null,
+    transactionId: String? = null,
 ) : ViewModel() {
 
     private val eventFlow = MutableStateFlow<AddEditEvent?>(null)
 
     val events: StateFlow<AddEditEvent?> = eventFlow
 
-    private val fieldState = MutableStateFlow(initialFieldState(initialTransaction))
+    private val fieldState = MutableStateFlow(AddEditFormState())
 
     val uiState: StateFlow<AddEditUiState> = combine(
         fieldState,
@@ -82,32 +85,27 @@ class AddEditTransactionViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = initialUiState(initialTransaction),
+        initialValue = AddEditUiState(),
     )
 
-    private fun initialFieldState(existing: Transaction?): AddEditFormState = AddEditFormState(
-        editingId = existing?.id,
-        type = existing?.type ?: TransactionType.EXPENSE,
-        amountInput = existing?.amount?.toString() ?: "",
-        categoryId = existing?.categoryId,
-        merchant = existing?.merchant.orEmpty(),
-        note = existing?.description.orEmpty(),
-        occurredAtMillis = existing?.occurredAt?.toEpochMilliseconds() ?: Clock.System.now().toEpochMilliseconds(),
-    )
-
-    private fun initialUiState(existing: Transaction?): AddEditUiState =
-        initialFieldState(existing).let { fields ->
-            AddEditUiState(
-                editingId = fields.editingId,
-                type = fields.type,
-                amountInput = fields.amountInput,
-                categoryId = fields.categoryId,
-                merchant = fields.merchant,
-                note = fields.note,
-                occurredAtMillis = fields.occurredAtMillis,
-                canSave = recomputeCanSave(fields),
-            )
+    init {
+        if (transactionId != null) {
+            viewModelScope.launch {
+                val existing = observeTransactions().first().firstOrNull { it.id == transactionId }
+                if (existing != null) {
+                    fieldState.value = fieldState.value.copy(
+                        editingId = existing.id,
+                        type = existing.type,
+                        amountInput = existing.amount.toString(),
+                        categoryId = existing.categoryId,
+                        merchant = existing.merchant.orEmpty(),
+                        note = existing.description.orEmpty(),
+                        occurredAtMillis = existing.occurredAt.toEpochMilliseconds(),
+                    )
+                }
+            }
         }
+    }
 
     fun updateType(type: TransactionType) { mutate { it.copy(type = type) } }
     fun updateAmount(input: String) { mutate { it.copy(amountInput = input) } }
