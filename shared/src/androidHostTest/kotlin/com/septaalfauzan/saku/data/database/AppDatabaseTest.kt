@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class AppDatabaseTest {
 
@@ -83,9 +82,9 @@ class AppDatabaseTest {
     }
 
     @Test
-    fun inMemoryDatabaseIsFresh() {
+    fun inMemoryDatabaseIsFresh() = runTest {
         val db = buildInMemory()
-        assertTrue(true)
+        assertEquals(0L, db.categoryDao().count())
         db.close()
     }
 }

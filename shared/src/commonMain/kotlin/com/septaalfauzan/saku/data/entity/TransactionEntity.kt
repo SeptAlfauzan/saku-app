@@ -19,7 +19,7 @@ data class TransactionEntity(
     val description: String?,
     val source: String,
     val sourcePackage: String?,
-    val status: String = "CONFIRMED",
+    val status: String = TransactionStatus.CONFIRMED.name,
     val occurredAtMillis: Long,
     val createdAtMillis: Long,
     val updatedAtMillis: Long,

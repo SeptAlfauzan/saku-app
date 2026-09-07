@@ -70,6 +70,9 @@ kotlin {
             implementation(libs.kotlinx.coroutinesTest)
             implementation(libs.koin.test)
         }
+        getByName("androidHostTest").dependencies {
+            implementation(libs.androidx.sqliteBundledJvm)
+        }
     }
 }
 
