@@ -22,6 +22,8 @@ dependencies {
     implementation(libs.androidx.navigationCompose)
     implementation(libs.koin.android)
     implementation(libs.koin.androidxCompose)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.materialIconsExtended)
 }
 
 android {
