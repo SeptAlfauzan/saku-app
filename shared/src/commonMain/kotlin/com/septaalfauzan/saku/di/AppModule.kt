@@ -13,7 +13,13 @@ import com.septaalfauzan.saku.domain.usecase.GetMonthlySummary
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
 import com.septaalfauzan.saku.domain.usecase.ObserveTransactions
 import com.septaalfauzan.saku.domain.usecase.UpdateTransaction
+import com.septaalfauzan.saku.ui.addedit.AddEditTransactionViewModel
+import com.septaalfauzan.saku.ui.dashboard.DashboardViewModel
+import com.septaalfauzan.saku.ui.detail.TransactionDetailViewModel
+import com.septaalfauzan.saku.ui.transactions.TransactionListViewModel
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val appModule = module {
@@ -28,4 +34,13 @@ val appModule = module {
     singleOf(::UpdateTransaction)
     singleOf(::DeleteTransaction)
     singleOf(::GetMonthlySummary)
+
+    viewModelOf(::DashboardViewModel)
+    viewModelOf(::TransactionListViewModel)
+    viewModel { params ->
+        TransactionDetailViewModel(get(), get(), params.getOrNull() ?: "")
+    }
+    viewModel { params ->
+        AddEditTransactionViewModel(get(), get(), get(), params.getOrNull())
+    }
 }
