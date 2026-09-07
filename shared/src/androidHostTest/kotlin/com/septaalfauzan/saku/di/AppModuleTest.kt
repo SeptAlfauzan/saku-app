@@ -11,6 +11,7 @@ import kotlin.test.Test
 @RunWith(RobolectricTestRunner::class)
 class AppModuleTest : KoinTest {
 
+    @Suppress("DEPRECATION")
     @Test
     fun appModuleGraphResolves() {
         AppModuleHostSetup.apply()

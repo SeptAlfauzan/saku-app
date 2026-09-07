@@ -2,9 +2,9 @@ package com.septaalfauzan.saku.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -45,7 +45,7 @@ private data class NavDestination(
 
 private val bottomDestinations = listOf(
     NavDestination(Routes.DASHBOARD, "Dashboard", Icons.Default.Home),
-    NavDestination(Routes.TRANSACTIONS, "Transactions", Icons.Default.List),
+    NavDestination(Routes.TRANSACTIONS, "Transactions", Icons.AutoMirrored.Filled.List),
 )
 
 @Composable

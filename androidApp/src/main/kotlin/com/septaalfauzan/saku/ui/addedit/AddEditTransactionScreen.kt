@@ -137,7 +137,7 @@ fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
                 enabled = state.canSave,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (state.editingId == null) "Save" else "Update")
+                Text(if (transactionId != null) "Update" else "Save")
             }
         }
     }

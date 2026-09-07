@@ -10,9 +10,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.septaalfauzan.saku.domain.model.Transaction
+import com.septaalfauzan.saku.util.formatRupiah
 import com.septaalfauzan.saku.util.formatShortDate
 
 @Composable
@@ -26,6 +27,7 @@ fun TransactionRow(transaction: Transaction, onClick: (() -> Unit)? = null) {
 
     Surface(
         onClick = onClick ?: {},
+        enabled = onClick != null,
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth(),
@@ -39,11 +41,11 @@ fun TransactionRow(transaction: Transaction, onClick: (() -> Unit)? = null) {
                 Text(date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
-                text = if (isIncome) "+${com.septaalfauzan.saku.util.formatRupiah(transaction.amount)}"
-                else "-${com.septaalfauzan.saku.util.formatRupiah(transaction.amount)}",
+                text = if (isIncome) "+${formatRupiah(transaction.amount)}"
+                else "-${formatRupiah(transaction.amount)}",
                 style = MaterialTheme.typography.titleSmall,
                 color = amountColor,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                fontWeight = FontWeight.SemiBold,
             )
         }
     }

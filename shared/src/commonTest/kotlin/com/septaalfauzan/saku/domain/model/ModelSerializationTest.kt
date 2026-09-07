@@ -39,7 +39,7 @@ class ModelSerializationTest {
     }
 
     @Test
-    fun transactionUsesSourceAndStatusDefaults() {
+    fun transactionSourceEqualsManual() {
         val tx = sampleTransaction()
         assertEquals(TransactionSource.MANUAL, tx.source)
     }
