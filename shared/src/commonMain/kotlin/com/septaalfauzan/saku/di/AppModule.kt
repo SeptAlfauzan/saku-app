@@ -29,6 +29,9 @@ import com.septaalfauzan.saku.notification.duplicate.DuplicateDetector
 import com.septaalfauzan.saku.notification.engine.NotificationParserEngine
 import com.septaalfauzan.saku.notification.provider.ParserRegistry
 import com.septaalfauzan.saku.notification.provider.bca.BcaNotificationParser
+import com.septaalfauzan.saku.notification.provider.dana.DanaNotificationParser
+import com.septaalfauzan.saku.notification.provider.gopay.GoPayNotificationParser
+import com.septaalfauzan.saku.notification.provider.ovo.OvoNotificationParser
 import com.septaalfauzan.saku.notification.usecase.ProcessNotificationUseCase
 import com.septaalfauzan.saku.ui.addedit.AddEditTransactionViewModel
 import com.septaalfauzan.saku.ui.dashboard.DashboardViewModel
@@ -66,7 +69,19 @@ val appModule = module {
     singleOf(::SetAutoConfirm)
 
     single { BcaNotificationParser() }
-    single { ParserRegistry(listOf(get<BcaNotificationParser>())) }
+    single { GoPayNotificationParser() }
+    single { OvoNotificationParser() }
+    single { DanaNotificationParser() }
+    single {
+        ParserRegistry(
+            listOf(
+                get<BcaNotificationParser>(),
+                get<GoPayNotificationParser>(),
+                get<OvoNotificationParser>(),
+                get<DanaNotificationParser>(),
+            ),
+        )
+    }
     single { NotificationParserEngine(get()) }
     single { DuplicateDetector(get()) }
     single { ProcessNotificationUseCase(get(), get(), get(), get()) }
