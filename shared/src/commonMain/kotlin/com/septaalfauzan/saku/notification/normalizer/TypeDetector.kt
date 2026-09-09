@@ -4,7 +4,7 @@ import com.septaalfauzan.saku.domain.model.TransactionType
 
 object TypeDetector {
     private val incomeWords = listOf("transfer masuk", "dana masuk", "diterima", "credit", "pemasukan")
-    private val expenseWords = listOf("pembayaran", "pembelian", "debit", "transaksi kartu")
+    private val expenseWords = listOf("pembayaran", "pembelian", "debit", "transaksi kartu", "charged", "card was")
 
     fun detect(text: String): TransactionType? {
         val lower = text.lowercase()
