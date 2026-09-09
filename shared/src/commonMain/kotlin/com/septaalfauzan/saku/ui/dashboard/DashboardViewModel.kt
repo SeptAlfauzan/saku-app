@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionStatus
+import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.usecase.GetMonthlySummary
+import com.septaalfauzan.saku.domain.usecase.ObservePending
 import com.septaalfauzan.saku.domain.usecase.ObserveTransactions
+import com.septaalfauzan.saku.extension.isToday
 import com.septaalfauzan.saku.util.monthLabel
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,6 +31,7 @@ data class DashboardUiState(
 class DashboardViewModel(
     observeTransactions: ObserveTransactions,
     getMonthlySummary: GetMonthlySummary,
+    observePending: ObservePending,
 ) : ViewModel() {
 
     val uiState: StateFlow<DashboardUiState> = observeTransactions()
@@ -49,4 +53,24 @@ class DashboardViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = DashboardUiState(),
         )
+    val burnRateState: StateFlow<List<Float>> = uiState
+        .map { state ->
+            state.recentTransactions.filter { transaction ->
+                transaction.occurredAt.isToday() &&
+                        transaction.type == TransactionType.EXPENSE
+            }
+                .sortedBy { item -> item.occurredAt }
+                .map { item -> item.amount / 10.toFloat()  }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+    val needReviewState: StateFlow<Int> = observePending().map {state ->  state.size }.stateIn(
+        scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0,
+
+    )
 }

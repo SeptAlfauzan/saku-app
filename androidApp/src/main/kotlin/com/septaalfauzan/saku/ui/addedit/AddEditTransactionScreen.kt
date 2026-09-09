@@ -1,23 +1,23 @@
 package com.septaalfauzan.saku.ui.addedit
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -36,6 +36,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.septaalfauzan.saku.domain.model.TransactionType
+import com.septaalfauzan.saku.ui.components.FilterChip
+import com.septaalfauzan.saku.ui.components.PillBackplate
+import com.septaalfauzan.saku.ui.components.PillButton
+import com.septaalfauzan.saku.ui.components.PillButtonVariant
+import com.septaalfauzan.saku.ui.designsystem.SakuDp
+import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import com.septaalfauzan.saku.util.formatShortDate
 import java.time.Instant
 import java.time.ZoneId
@@ -59,86 +65,102 @@ fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding),
         verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = SakuDp.bottomSafeClearance),
     ) {
+        item { Spacer(Modifier.height(SakuDp.spaceSm)) }
         item {
-            TypeSelector(
-                type = state.type,
-                onSelect = viewModel::updateType,
+            Text(
+                if (transactionId != null) "Edit Transaction" else "Add Transaction",
+                style = SakuTheme.type.headlineLg,
+                color = SakuTheme.palette.ink,
             )
         }
-
         item {
-            val amountError = state.amountError
-            OutlinedTextField(
-                value = state.amountInput,
-                onValueChange = viewModel::updateAmount,
-                label = { Text("Amount") },
-                isError = amountError != null,
-                supportingText = amountError?.let { { Text(it) } },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            TypeSelector(type = state.type, onSelect = viewModel::updateType)
         }
-
         item {
-            Text("Category", style = MaterialTheme.typography.labelLarge)
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(state.categories, key = { it.id }) { category ->
-                    FilterChip(
-                        selected = category.id == state.categoryId,
-                        onClick = { viewModel.updateCategory(category.id) },
-                        label = { Text(category.name) },
+            PillBackplate {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Rp", style = SakuTheme.type.numericTable, color = SakuTheme.palette.slate)
+                    Spacer(Modifier.width(SakuDp.spaceSm))
+                    BasicTextField(
+                        value = state.amountInput,
+                        onValueChange = viewModel::updateAmount,
+                        textStyle = SakuTheme.type.displayCurrencyMobile.copy(
+                            color = SakuTheme.palette.ink,
+                            fontFeatureSettings = "tnum",
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
-            val categoryError = state.categoryError
-            if (categoryError != null) {
-                Text(
-                    text = categoryError,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 4.dp),
+            state.amountError?.let {
+                Text(it, style = SakuTheme.type.bodySm, color = SakuTheme.palette.crimson, modifier = Modifier.padding(top = 4.dp))
+            }
+        }
+        item {
+            Text("Category", style = SakuTheme.type.labelCaps, color = SakuTheme.palette.slate)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
+                items(state.categories, key = { it.id }) { category ->
+                    FilterChip(
+                        label = category.name,
+                        selected = category.id == state.categoryId,
+                        onClick = { viewModel.updateCategory(category.id) },
+                    )
+                }
+            }
+            state.categoryError?.let {
+                Text(it, style = SakuTheme.type.bodySm, color = SakuTheme.palette.crimson, modifier = Modifier.padding(top = 4.dp))
+            }
+        }
+        item {
+            PillBackplate {
+                BasicTextField(
+                    value = state.merchant,
+                    onValueChange = viewModel::updateMerchant,
+                    textStyle = SakuTheme.type.bodyLg.copy(color = SakuTheme.palette.ink),
+                    decorationBox = { inner ->
+                        if (state.merchant.isEmpty()) {
+                            Text("Merchant", style = SakuTheme.type.bodyLg, color = SakuTheme.palette.slate)
+                        }
+                        inner()
+                    },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
-
         item {
-            OutlinedTextField(
-                value = state.merchant,
-                onValueChange = viewModel::updateMerchant,
-                label = { Text("Merchant") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            PillBackplate {
+                BasicTextField(
+                    value = state.note,
+                    onValueChange = viewModel::updateNote,
+                    textStyle = SakuTheme.type.bodyLg.copy(color = SakuTheme.palette.ink),
+                    decorationBox = { inner ->
+                        if (state.note.isEmpty()) {
+                            Text("Note", style = SakuTheme.type.bodyLg, color = SakuTheme.palette.slate)
+                        }
+                        inner()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
-
         item {
-            OutlinedTextField(
-                value = state.note,
-                onValueChange = viewModel::updateNote,
-                label = { Text("Note") },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            DateField(state.occurredAtMillis, viewModel::updateDate)
         }
-
         item {
-            DateField(
-                occurredAtMillis = state.occurredAtMillis,
-                onPick = viewModel::updateDate,
-            )
-        }
-
-        item {
-            Button(
+            PillButton(
+                text = if (transactionId != null) "Update" else "Save",
                 onClick = viewModel::save,
                 enabled = state.canSave,
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(if (transactionId != null) "Update" else "Save")
-            }
+                variant = if (state.type == TransactionType.EXPENSE) PillButtonVariant.ACCENT else PillButtonVariant.PRIMARY,
+            )
         }
     }
 }
@@ -206,10 +228,10 @@ private fun DateField(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Date", style = MaterialTheme.typography.labelLarge)
+        Text("Date", style = SakuTheme.type.labelCaps, color = SakuTheme.palette.slate)
         Spacer(Modifier.width(12.dp))
         TextButton(onClick = { showPicker = true }) {
-            Text(formatShortDate(occurredAtMillis))
+            Text(formatShortDate(occurredAtMillis), style = SakuTheme.type.labelMd, color = SakuTheme.palette.crimson)
         }
     }
 }

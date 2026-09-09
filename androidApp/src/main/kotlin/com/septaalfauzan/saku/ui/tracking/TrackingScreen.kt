@@ -1,5 +1,7 @@
 package com.septaalfauzan.saku.ui.tracking
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,16 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,79 +24,125 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import com.septaalfauzan.saku.notification.NotificationAccessManager
 import com.septaalfauzan.saku.ui.components.EmptyState
+import com.septaalfauzan.saku.ui.components.LabelCaps
+import com.septaalfauzan.saku.ui.components.PillButton
+import com.septaalfauzan.saku.ui.components.PillButtonVariant
+import com.septaalfauzan.saku.ui.designsystem.SakuDp
+import com.septaalfauzan.saku.ui.designsystem.SakuIcons
+import com.septaalfauzan.saku.ui.designsystem.SakuTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun TrackingRoute(onBack: () -> Unit) {
+fun TrackingRoute(onBack: (() -> Unit)?) {
     val viewModel: TrackingViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
+    val palette = SakuTheme.palette
+    val type = SakuTheme.type
     val context = LocalContext.current
     val accessGranted by produceState(initialValue = false) {
         value = withContext(Dispatchers.Default) { NotificationAccessManager.isListening(context) }
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
+    Column(Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding)) {
+        Spacer(Modifier.height(SakuDp.spaceSm))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-            Text("Automatic Tracking", style = MaterialTheme.typography.headlineSmall)
-        }
-        Spacer(Modifier.height(8.dp))
-
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    "Reads notifications from selected financial apps to automatically record transactions. " +
-                        "Notifications are processed locally whenever possible.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                if (accessGranted) {
-                    Text("Notification access granted", color = MaterialTheme.colorScheme.primary)
-                } else {
-                    Text("Notification access not granted", color = MaterialTheme.colorScheme.error)
-                    Button(onClick = { NotificationAccessManager.openSettings(context) }) {
-                        Text("Enable Notification Access")
-                    }
+            if (onBack != null) {
+                IconButton(onClick = onBack) {
+                    Icon(SakuIcons.Back, contentDescription = "Back", tint = palette.ink)
                 }
             }
+            Text(
+                if (onBack != null) "Automatic Tracking" else "Rules",
+                style = type.headlineLg,
+                color = palette.ink,
+            )
+        }
+        Spacer(Modifier.height(SakuDp.spaceMd))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(palette.canvas, RoundedCornerShape(28.dp))
+                .border(1.dp, palette.hairline, RoundedCornerShape(28.dp))
+                .padding(SakuDp.spaceMd),
+            verticalArrangement = Arrangement.spacedBy(SakuDp.spaceSm),
+        ) {
+            Text(
+                "Reads notifications from selected financial apps to automatically record transactions. Notifications are processed locally whenever possible.",
+                style = type.bodyMd,
+                color = palette.slate,
+            )
+            if (accessGranted) {
+                Text("Notification access granted", style = type.labelCaps, color = palette.crimson)
+            } else {
+                Text("Notification access not granted", style = type.labelCaps, color = palette.crimson)
+                PillButton(
+                    "Enable Notification Access",
+                    { NotificationAccessManager.openSettings(context) },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = PillButtonVariant.PRIMARY,
+                )
+            }
         }
 
-        Spacer(Modifier.height(12.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Automatic Tracking", style = MaterialTheme.typography.titleMedium)
-            Switch(checked = state.trackingEnabled, onCheckedChange = viewModel::toggleTrackingEnabled)
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Auto-confirm high confidence", style = MaterialTheme.typography.bodyLarge)
-            Switch(checked = state.autoConfirm, onCheckedChange = viewModel::toggleAutoConfirm)
-        }
+        Spacer(Modifier.height(SakuDp.spaceMd))
+        RuleRow("Automatic Tracking", state.trackingEnabled, viewModel::toggleTrackingEnabled)
+        RuleRow("Auto-confirm high confidence", state.autoConfirm, viewModel::toggleAutoConfirm)
 
-        Spacer(Modifier.height(12.dp))
-        Text("Monitored Apps", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(SakuDp.spaceMd))
+        LabelCaps("Monitored Apps", color = palette.slate)
+        Spacer(Modifier.height(SakuDp.spaceXs))
         if (state.sources.isEmpty()) {
             EmptyState(title = "No apps", body = "Enable a financial app to track.")
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(state.sources, key = { it.packageName }) { source ->
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(source.providerId, style = MaterialTheme.typography.bodyLarge)
-                            Text(source.packageName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Switch(checked = source.enabled, onCheckedChange = { enabled -> viewModel.toggleSourceEnabled(source.packageName, enabled) })
-                    }
-                }
+            state.sources.forEach { source ->
+                RuleRow(
+                    label = source.providerId,
+                    sublabel = source.packageName,
+                    checked = source.enabled,
+                    onCheckedChange = { enabled -> viewModel.toggleSourceEnabled(source.packageName, enabled) },
+                )
             }
         }
+        Spacer(Modifier.height(SakuDp.bottomSafeClearance))
     }
 }
+
+@Composable
+private fun RuleRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    sublabel: String = "",
+) {
+    val palette = SakuTheme.palette
+    val type = SakuTheme.type
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(label, style = type.labelMd, color = palette.ink)
+            if (sublabel.isNotBlank()) {
+                Text(sublabel, style = type.bodySm, color = palette.slate)
+            }
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = palette.canvas,
+                checkedTrackColor = palette.crimson,
+                uncheckedThumbColor = palette.canvas,
+                uncheckedTrackColor = palette.chalk,
+                uncheckedBorderColor = palette.hairline,
+            ),
+        )
+    }
+}
+

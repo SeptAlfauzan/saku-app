@@ -1,0 +1,304 @@
+package com.septaalfauzan.saku.ui.scanner
+
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.septaalfauzan.saku.ui.components.LabelCaps
+import com.septaalfauzan.saku.ui.components.PillButton
+import com.septaalfauzan.saku.ui.components.PillButtonVariant
+import com.septaalfauzan.saku.ui.designsystem.SakuDp
+import com.septaalfauzan.saku.ui.designsystem.SakuIcons
+import com.septaalfauzan.saku.ui.designsystem.SakuTheme
+import java.io.File
+import java.util.concurrent.Executor
+
+@Composable
+fun ScannerScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val viewModel: ScannerViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+    val palette = SakuTheme.palette
+    val type = SakuTheme.type
+    var shutterToken by remember { mutableStateOf(0) }
+
+    var hasPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        hasPermission = granted
+    }
+
+    Box(Modifier.fillMaxSize().background(Color.Black)) {
+        when (state.phase) {
+            ScannerPhase.VIEWFINDER, ScannerPhase.SCANNING -> {
+                if (hasPermission) {
+                    CameraView(
+                        flashMode = state.flash,
+                        shutterToken = shutterToken,
+                        onCaptured = viewModel::onCaptured,
+                    )
+                } else {
+                    PermissionPrompt(onGrant = { permissionLauncher.launch(Manifest.permission.CAMERA) })
+                }
+            }
+            ScannerPhase.RESULT -> {
+                Column(
+                    Modifier.fillMaxSize().padding(SakuDp.screenEdgePadding),
+                    verticalArrangement = Arrangement.spacedBy(SakuDp.spaceMd),
+                ) {
+                    Spacer(Modifier.height(SakuDp.spaceSm))
+                    Text("Scan Review", style = type.headlineSm, color = Color.White)
+                    state.capturedPath?.let { path ->
+                        val bitmap = remember(path) { BitmapFactory.decodeFile(path)?.asImageBitmap() }
+                        if (bitmap != null) {
+                            Image(
+                                bitmap = bitmap,
+                                contentDescription = "Captured receipt",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(20.dp)),
+                            )
+                        }
+                    }
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF1A1A1F), RoundedCornerShape(20.dp))
+                            .padding(SakuDp.spaceMd),
+                        verticalArrangement = Arrangement.spacedBy(SakuDp.spaceXs),
+                    ) {
+                        LabelCaps("Detected", color = palette.crimson)
+                        SampleField("Merchant", "Kopi Senja")
+                        SampleField("Date", "Today")
+                        SampleField("Total", "-Rp58.000")
+                        SampleField("Provider", "GoPay")
+                        Text(
+                            "Line items: 1x Kopi Oke (Rp38.000), 1x Croissant (Rp20.000)",
+                            style = type.bodySm,
+                            color = Color.White,
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
+                        PillButton("Approve & Log", viewModel::approve, modifier = Modifier.weight(1f), variant = PillButtonVariant.ACCENT)
+                        PillButton("Edit", viewModel::edit, modifier = Modifier.weight(1f), variant = PillButtonVariant.GHOST)
+                    }
+                    PillButton("Rescan", viewModel::retake, modifier = Modifier.fillMaxWidth(), variant = PillButtonVariant.PRIMARY)
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = SakuDp.spaceMd, start = SakuDp.spaceSm, end = SakuDp.spaceSm)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(SakuIcons.ChevronLeft, contentDescription = "Back", tint = Color.White)
+            }
+            Text("Receipt Scanner", style = type.labelCaps, color = Color.White)
+            Spacer(Modifier.weight(1f))
+            IconButton(onClick = viewModel::toggleFlash) {
+                Icon(
+                    if (state.flash == ScannerFlash.OFF) SakuIcons.FlashOff else SakuIcons.FlashOn,
+                    contentDescription = "Flash: ${state.flash}",
+                    tint = Color.White,
+                )
+            }
+        }
+
+        if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING) {
+            ShutterButton(
+                scanning = state.phase == ScannerPhase.SCANNING,
+                onClick = { shutterToken++ },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 48.dp),
+            )
+        }
+
+        state.message?.let { msg ->
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 120.dp)
+                    .background(Color(0xFF1A1A1F), RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+            ) {
+                Text(msg, style = type.bodySm, color = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShutterButton(scanning: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val palette = SakuTheme.palette
+    Box(
+        modifier = modifier
+            .size(72.dp)
+            .border(3.dp, Color.White, CircleShape)
+            .clickable(enabled = !scanning, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            Modifier
+                .padding(8.dp)
+                .size(56.dp)
+                .background(if (scanning) palette.crimson.copy(alpha = 0.4f) else palette.crimson, CircleShape),
+        )
+    }
+}
+
+@Composable
+private fun SampleField(label: String, value: String) {
+    val type = SakuTheme.type
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, style = type.labelMd, color = Color(0xFF9C9CA4))
+        Text(value, style = type.labelMd, color = Color.White)
+    }
+}
+
+@Composable
+private fun PermissionPrompt(onGrant: () -> Unit) {
+    val type = SakuTheme.type
+    Column(
+        Modifier.fillMaxSize().padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("Camera permission required", style = type.headlineSm, color = Color.White)
+        Spacer(Modifier.height(SakuDp.spaceSm))
+        Text("Allow camera access to scan receipts.", style = type.bodyMd, color = Color(0xFF9C9CA4))
+        Spacer(Modifier.height(SakuDp.spaceMd))
+        PillButton("Grant Access", onGrant, modifier = Modifier.fillMaxWidth(0.6f), variant = PillButtonVariant.ACCENT)
+    }
+}
+
+private fun newReceiptFile(context: Context): File =
+    File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+
+private fun ScannerFlash.toCameraXFlash(): Int = when (this) {
+    ScannerFlash.AUTO -> ImageCapture.FLASH_MODE_AUTO
+    ScannerFlash.ON -> ImageCapture.FLASH_MODE_ON
+    ScannerFlash.OFF -> ImageCapture.FLASH_MODE_OFF
+}
+
+@Composable
+private fun CameraView(
+    flashMode: ScannerFlash,
+    shutterToken: Int,
+    onCaptured: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val previewView = remember { PreviewView(context).apply { implementationMode = PreviewView.ImplementationMode.COMPATIBLE } }
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    val executor: Executor = remember { ContextCompat.getMainExecutor(context) }
+    val onCapturedRef = rememberUpdatedState(onCaptured)
+
+    LaunchedEffect(lifecycleOwner) {
+        val provider = ProcessCameraProvider.getInstance(context)
+        provider.addListener({
+            val cameraProvider = provider.get()
+            val preview = Preview.Builder().build().also {
+                it.surfaceProvider = previewView.surfaceProvider
+            }
+            val capture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setFlashMode(flashMode.toCameraXFlash())
+                .build()
+            imageCapture = capture
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
+        }, executor)
+    }
+
+    LaunchedEffect(flashMode) {
+        imageCapture?.flashMode = flashMode.toCameraXFlash()
+    }
+
+    LaunchedEffect(shutterToken) {
+        if (shutterToken == 0) return@LaunchedEffect
+        val capture = imageCapture ?: return@LaunchedEffect
+        val file = newReceiptFile(context)
+        capture.takePicture(
+            ImageCapture.OutputFileOptions.Builder(file).build(),
+            executor,
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    onCapturedRef.value(file.absolutePath)
+                }
+
+                override fun onError(exc: ImageCaptureException) {
+                    onCapturedRef.value(file.absolutePath)
+                }
+            },
+        )
+    }
+
+    AndroidView(
+        factory = { previewView },
+        modifier = Modifier.fillMaxSize(),
+    )
+
+    DisposableEffect(Unit) {
+        onDispose {
+            val provider = ProcessCameraProvider.getInstance(context)
+            provider.addListener({
+                provider.get().unbindAll()
+            }, executor)
+        }
+    }
+}

@@ -1,88 +1,160 @@
 package com.septaalfauzan.saku.ui.dashboard
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.septaalfauzan.saku.ui.components.AmountText
+import com.septaalfauzan.saku.ui.components.BalanceCard
 import com.septaalfauzan.saku.ui.components.EmptyState
+import com.septaalfauzan.saku.ui.components.LabelCaps
+import com.septaalfauzan.saku.ui.components.PillButton
+import com.septaalfauzan.saku.ui.components.PillButtonVariant
 import com.septaalfauzan.saku.ui.components.TransactionRow
-import com.septaalfauzan.saku.util.formatRupiah
+import com.septaalfauzan.saku.ui.designsystem.SakuDp
+import com.septaalfauzan.saku.ui.designsystem.SakuIcons
+import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun DashboardRoute(onAdd: () -> Unit, onOpenReview: () -> Unit, onOpenTracking: () -> Unit) {
+fun DashboardRoute(
+    onAdd: () -> Unit,
+    onOpenReview: () -> Unit,
+    onOpenTracking: () -> Unit,
+    onOpenTransaction: (String) -> Unit,
+    onOpenAll: () -> Unit,
+) {
     val viewModel: DashboardViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
+    val burnRateState by viewModel.burnRateState.collectAsState()
+    val itemsNeedReview by viewModel.needReviewState.collectAsState()
+    val palette = SakuTheme.palette
+    val type = SakuTheme.type
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text(state.monthLabel, style = MaterialTheme.typography.headlineSmall)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding),
+        contentPadding = PaddingValues(
+            top = SakuDp.spaceLg,
+            bottom = SakuDp.bottomSafeClearance,
+        ),
+        verticalArrangement = Arrangement.spacedBy(SakuDp.spaceMd),
+    ) {
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(palette.canvas, RoundedCornerShape(28.dp))
+                    .padding(SakuDp.spaceMd),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier.size(40.dp).background(palette.chalk, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(SakuIcons.Listener, contentDescription = null, tint = palette.crimson, modifier = Modifier.size(20.dp))
+                }
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(8.dp).background(palette.crimson, CircleShape))
+                        Text(
+                            "  Smart Listener Active",
+                            style = type.labelCaps,
+                            color = palette.crimson,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                    Text(
+                        "Transaksi dari GoPay, OVO, DANA, dan BCA otomatis dicatat.",
+                        style = type.bodySm,
+                        color = palette.slate,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
+        }
 
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-        ) {
-            Column(Modifier.padding(20.dp)) {
-                Text("Balance", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+        item {
+            BalanceCard(
+                monthLabel = state.monthLabel,
+                balance = state.balance,
+                income = state.income,
+                expense = state.expense,
+                burnRate = burnRateState
+            )
+        }
+
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                LabelCaps("Review", color = palette.slate)
+                Text("Pending items", style = type.bodySm, color = palette.slate)
+            }
+            Spacer(Modifier.height(SakuDp.spaceXs))
+            Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
+                BadgedBox(
+                    badge = {if(itemsNeedReview == 0) Spacer(modifier = Modifier) else Badge {
+                            Text("1")
+                        }
+            }
+                    ,
+                    modifier = Modifier.weight(1f),
+                ) {
+
+                PillButton("Review Queue", onOpenReview,
+                    variant = PillButtonVariant.GHOST)
+                }
+                PillButton("Tracking", onOpenTracking, modifier = Modifier.weight(1f), variant = PillButtonVariant.GHOST)
+            }
+        }
+
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Recent Activity", style = type.headlineSm, color = palette.ink)
                 Text(
-                    formatRupiah(state.balance),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    "View All",
+                    style = type.labelMd,
+                    color = palette.crimson,
+                    modifier = Modifier.clickable { onOpenAll() },
                 )
             }
+            Spacer(Modifier.height(SakuDp.spaceXs))
         }
-
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column {
-                Text("Income", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                AmountText(state.income, "+")
-            }
-            Column {
-                Text("Expense", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                AmountText(state.expense, "-")
-            }
-        }
-
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = onOpenReview) { Text("Review queue") }
-            TextButton(onClick = onOpenTracking) { Text("Automatic tracking") }
-        }
-
-        Spacer(Modifier.height(16.dp))
-        Text("Recent Transactions", style = MaterialTheme.typography.titleMedium)
 
         if (state.recentTransactions.isEmpty()) {
-            EmptyState(
-                title = "No transactions yet",
-                body = "Record your first income or expense.",
-                ctaLabel = "Add Transaction",
-                onCta = onAdd,
-            )
+            item {
+                EmptyState(
+                    title = "No transactions yet",
+                    body = "Record your first income or expense.",
+                    ctaLabel = "Add Transaction",
+                    onCta = onAdd,
+                )
+            }
         } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                items(state.recentTransactions, key = { it.id }) { tx ->
-                    TransactionRow(tx)
-                }
+            items(state.recentTransactions, key = { it.id }) { tx ->
+                TransactionRow(tx, onClick = { onOpenTransaction(tx.id) })
             }
         }
     }
 }
+
