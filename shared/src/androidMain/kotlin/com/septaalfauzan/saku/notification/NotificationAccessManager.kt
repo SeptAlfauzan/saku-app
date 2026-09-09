@@ -7,7 +7,9 @@ import android.provider.Settings
 
 object NotificationAccessManager {
     fun isListening(context: Context): Boolean {
-        val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners") ?: return false
+        val flat = runCatching {
+            Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+        }.getOrNull() ?: return false
         return flat.split(':').any { token ->
             ComponentName.unflattenFromString(token)?.packageName == context.packageName
         }

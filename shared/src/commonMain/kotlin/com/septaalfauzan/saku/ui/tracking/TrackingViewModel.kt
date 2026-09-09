@@ -42,15 +42,15 @@ class TrackingViewModel(
         initialValue = TrackingUiState(),
     )
 
-    fun setTrackingEnabled(enabled: Boolean) {
+    fun toggleTrackingEnabled(enabled: Boolean) {
         viewModelScope.launch { setTrackingEnabled(enabled) }
     }
 
-    fun setAutoConfirm(enabled: Boolean) {
+    fun toggleAutoConfirm(enabled: Boolean) {
         viewModelScope.launch { setAutoConfirm(enabled) }
     }
 
-    fun setSourceEnabled(packageName: String, enabled: Boolean) {
+    fun toggleSourceEnabled(packageName: String, enabled: Boolean) {
         viewModelScope.launch { setSourceEnabled(packageName, enabled) }
     }
 }

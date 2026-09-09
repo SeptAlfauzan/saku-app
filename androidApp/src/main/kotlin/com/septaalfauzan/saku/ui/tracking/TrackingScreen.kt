@@ -22,11 +22,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.septaalfauzan.saku.notification.NotificationAccessManager
 import com.septaalfauzan.saku.ui.components.EmptyState
 import org.koin.androidx.compose.koinViewModel
@@ -36,7 +38,9 @@ fun TrackingRoute(onBack: () -> Unit) {
     val viewModel: TrackingViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val accessGranted = remember { NotificationAccessManager.isListening(context) }
+    val accessGranted by produceState(initialValue = false) {
+        value = withContext(Dispatchers.Default) { NotificationAccessManager.isListening(context) }
+    }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -68,11 +72,11 @@ fun TrackingRoute(onBack: () -> Unit) {
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Automatic Tracking", style = MaterialTheme.typography.titleMedium)
-            Switch(checked = state.trackingEnabled, onCheckedChange = viewModel::setTrackingEnabled)
+            Switch(checked = state.trackingEnabled, onCheckedChange = viewModel::toggleTrackingEnabled)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Auto-confirm high confidence", style = MaterialTheme.typography.bodyLarge)
-            Switch(checked = state.autoConfirm, onCheckedChange = viewModel::setAutoConfirm)
+            Switch(checked = state.autoConfirm, onCheckedChange = viewModel::toggleAutoConfirm)
         }
 
         Spacer(Modifier.height(12.dp))
@@ -92,7 +96,7 @@ fun TrackingRoute(onBack: () -> Unit) {
                             Text(source.providerId, style = MaterialTheme.typography.bodyLarge)
                             Text(source.packageName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Switch(checked = source.enabled, onCheckedChange = { enabled -> viewModel.setSourceEnabled(source.packageName, enabled) })
+                        Switch(checked = source.enabled, onCheckedChange = { enabled -> viewModel.toggleSourceEnabled(source.packageName, enabled) })
                     }
                 }
             }
