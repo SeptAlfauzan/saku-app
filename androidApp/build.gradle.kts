@@ -15,6 +15,8 @@ dependencies {
 
     implementation(platform(libs.koin.bom))
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodelCompose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
@@ -24,6 +26,11 @@ dependencies {
     implementation(libs.koin.androidxCompose)
     implementation(libs.compose.material3)
     implementation(libs.compose.materialIconsExtended)
+
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
 }
 
 android {
