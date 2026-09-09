@@ -3,6 +3,7 @@ package com.septaalfauzan.saku.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.septaalfauzan.saku.domain.model.Transaction
+import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.domain.usecase.GetMonthlySummary
 import com.septaalfauzan.saku.domain.usecase.ObserveTransactions
 import com.septaalfauzan.saku.util.monthLabel
@@ -30,6 +31,7 @@ class DashboardViewModel(
 ) : ViewModel() {
 
     val uiState: StateFlow<DashboardUiState> = observeTransactions()
+        .map { txs -> txs.filter { it.status == TransactionStatus.CONFIRMED } }
         .flatMapLatest { allTx ->
             val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
             getMonthlySummary(now.year, now.month.number).map { summary ->

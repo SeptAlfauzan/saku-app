@@ -14,6 +14,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,7 +27,7 @@ import com.septaalfauzan.saku.util.formatRupiah
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun DashboardRoute(onAdd: () -> Unit) {
+fun DashboardRoute(onAdd: () -> Unit, onOpenReview: () -> Unit, onOpenTracking: () -> Unit) {
     val viewModel: DashboardViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
 
@@ -56,6 +57,11 @@ fun DashboardRoute(onAdd: () -> Unit) {
                 Text("Expense", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 AmountText(state.expense, "-")
             }
+        }
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            TextButton(onClick = onOpenReview) { Text("Review queue") }
+            TextButton(onClick = onOpenTracking) { Text("Automatic tracking") }
         }
 
         Spacer(Modifier.height(16.dp))

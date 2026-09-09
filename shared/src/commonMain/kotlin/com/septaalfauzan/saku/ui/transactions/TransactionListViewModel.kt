@@ -3,6 +3,7 @@ package com.septaalfauzan.saku.ui.transactions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.septaalfauzan.saku.domain.model.Transaction
+import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.usecase.ObserveTransactions
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,10 +29,11 @@ class TransactionListViewModel(
         observeTransactions(),
         filterFlow,
     ) { txs, filter ->
+        val confirmed = txs.filter { it.status == TransactionStatus.CONFIRMED }
         val filtered = when (filter) {
-            TransactionFilter.ALL -> txs
-            TransactionFilter.INCOME -> txs.filter { it.type == TransactionType.INCOME }
-            TransactionFilter.EXPENSE -> txs.filter { it.type == TransactionType.EXPENSE }
+            TransactionFilter.ALL -> confirmed
+            TransactionFilter.INCOME -> confirmed.filter { it.type == TransactionType.INCOME }
+            TransactionFilter.EXPENSE -> confirmed.filter { it.type == TransactionType.EXPENSE }
         }
         TransactionListState(filter = filter, transactions = filtered)
     }.stateIn(

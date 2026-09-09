@@ -24,7 +24,9 @@ import androidx.navigation.compose.rememberNavController
 import com.septaalfauzan.saku.ui.addedit.AddEditRoute
 import com.septaalfauzan.saku.ui.dashboard.DashboardRoute
 import com.septaalfauzan.saku.ui.detail.DetailRoute
+import com.septaalfauzan.saku.ui.review.ReviewQueueRoute
 import com.septaalfauzan.saku.ui.theme.SakuTheme
+import com.septaalfauzan.saku.ui.tracking.TrackingRoute
 import com.septaalfauzan.saku.ui.transactions.TransactionListRoute
 
 object Routes {
@@ -33,6 +35,8 @@ object Routes {
     const val ADD = "add"
     const val EDIT = "edit/{transactionId}"
     const val DETAIL = "detail/{transactionId}"
+    const val REVIEW = "review"
+    const val TRACKING = "tracking"
     fun edit(id: String) = "edit/$id"
     fun detail(id: String) = "detail/$id"
 }
@@ -94,7 +98,13 @@ fun App() {
                 startDestination = Routes.DASHBOARD,
                 modifier = Modifier.padding(innerPadding),
             ) {
-                composable(Routes.DASHBOARD) { DashboardRoute(onAdd = { navController.navigate(Routes.ADD) }) }
+                composable(Routes.DASHBOARD) {
+                    DashboardRoute(
+                        onAdd = { navController.navigate(Routes.ADD) },
+                        onOpenReview = { navController.navigate(Routes.REVIEW) },
+                        onOpenTracking = { navController.navigate(Routes.TRACKING) },
+                    )
+                }
                 composable(Routes.TRANSACTIONS) { TransactionListRoute(onOpen = { id -> navController.navigate(Routes.detail(id)) }, onAdd = { navController.navigate(Routes.ADD) }) }
                 composable(Routes.ADD) { AddEditRoute(onDone = { navController.popBackStack() }) }
                 composable(
@@ -107,6 +117,15 @@ fun App() {
                 ) { entry ->
                     val id = entry.arguments?.getString("transactionId")
                     if (id != null) DetailRoute(transactionId = id, onEdit = { navController.navigate(Routes.edit(id)) }, onDeleted = { navController.popBackStack() })
+                }
+                composable(Routes.REVIEW) {
+                    ReviewQueueRoute(
+                        onEdit = { id -> navController.navigate(Routes.edit(id)) },
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable(Routes.TRACKING) {
+                    TrackingRoute(onBack = { navController.popBackStack() })
                 }
             }
         }
