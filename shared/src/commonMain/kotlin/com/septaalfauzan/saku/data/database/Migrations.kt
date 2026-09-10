@@ -16,3 +16,16 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         )
     }
 }
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override suspend fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            """CREATE TABLE IF NOT EXISTS `parser_keywords` (
+                `packageName` TEXT NOT NULL,
+                `keywordType` TEXT NOT NULL,
+                `keyword` TEXT NOT NULL,
+                PRIMARY KEY(`packageName`, `keywordType`, `keyword`)
+            )""",
+        )
+    }
+}
