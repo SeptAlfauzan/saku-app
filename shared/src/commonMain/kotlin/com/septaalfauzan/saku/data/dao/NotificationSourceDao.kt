@@ -18,6 +18,9 @@ interface NotificationSourceDao {
     @Query("SELECT COUNT(*) FROM notification_sources")
     suspend fun count(): Long
 
+    @Query("DELETE FROM notification_sources WHERE packageName = :packageName")
+    suspend fun deleteByPackage(packageName: String)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(items: List<NotificationSourceEntity>)
 }

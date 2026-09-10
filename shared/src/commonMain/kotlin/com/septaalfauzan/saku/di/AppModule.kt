@@ -2,6 +2,7 @@ package com.septaalfauzan.saku.di
 
 import com.septaalfauzan.saku.data.dao.CategoryDao
 import com.septaalfauzan.saku.data.dao.NotificationSourceDao
+import com.septaalfauzan.saku.data.dao.ParserKeywordDao
 import com.septaalfauzan.saku.data.dao.SettingsDao
 import com.septaalfauzan.saku.data.dao.TransactionDao
 import com.septaalfauzan.saku.data.database.AppDatabase
@@ -51,8 +52,9 @@ val appModule = module {
     single { get<AppDatabase>().categoryDao() }
     single { get<AppDatabase>().sourceDao() }
     single { get<AppDatabase>().settingsDao() }
+    single { get<AppDatabase>().keywordDao() }
     single<TransactionRepository> { RoomTransactionRepository(get(), get()) }
-    single<NotificationSettingsRepository> { RoomNotificationSettingsRepository(get(), get()) }
+    single<NotificationSettingsRepository> { RoomNotificationSettingsRepository(get(), get(), get()) }
 
     singleOf(::ObserveTransactions)
     singleOf(::ObserveCategories)
