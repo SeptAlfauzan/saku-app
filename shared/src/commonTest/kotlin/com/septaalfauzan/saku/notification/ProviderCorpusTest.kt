@@ -6,10 +6,6 @@ import com.septaalfauzan.saku.domain.model.ParserKeyword
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.notification.model.NotificationData
 import com.septaalfauzan.saku.notification.provider.ParserRegistry
-import com.septaalfauzan.saku.notification.provider.bca.BcaNotificationParser
-import com.septaalfauzan.saku.notification.provider.dana.DanaNotificationParser
-import com.septaalfauzan.saku.notification.provider.gopay.GoPayNotificationParser
-import com.septaalfauzan.saku.notification.provider.ovo.OvoNotificationParser
 import kotlin.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals

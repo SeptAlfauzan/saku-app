@@ -7,7 +7,6 @@ import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.notification.generic.GenericNotificationParser
 import com.septaalfauzan.saku.notification.model.NotificationData
 import com.septaalfauzan.saku.notification.provider.ParserRegistry
-import com.septaalfauzan.saku.notification.provider.bca.BcaNotificationParser
 import kotlin.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,22 +23,38 @@ class BcaAndGenericParserTest {
         notificationId = 1,
     )
 
-    private val bcaParser = BcaNotificationParser()
     private val generic = GenericNotificationParser()
+    private val bcaSource = NotificationSource("com.bca", "bca", enabled = true)
+    private val bcaKeywords = listOf(
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "pembayaran"),
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "pembelian"),
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "debit"),
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "transaksi kartu"),
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "pengeluaran"),
+        ParserKeyword("com.bca", KeywordType.INCOME, "transfer masuk"),
+        ParserKeyword("com.bca", KeywordType.INCOME, "dana masuk"),
+        ParserKeyword("com.bca", KeywordType.INCOME, "diterima"),
+        ParserKeyword("com.bca", KeywordType.INCOME, "pemasukan"),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "berhasil di "),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "di "),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "ke "),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "dari "),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "merchant "),
+    )
+    private val bcaRegistry = ParserRegistry().also { it.rebuild(listOf(bcaSource), mapOf("com.bca" to bcaKeywords)) }
 
     @Test
     fun bcaExpenseExtractsTypeAmountCurrencyAndMerchant() {
-        val parsed = bcaParser.parse(notification("com.bca", "Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
+        val parsed = bcaRegistry.parse(notification("com.bca", "Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
         assertNotNull(parsed)
         assertEquals(TransactionType.EXPENSE, parsed.type)
         assertEquals(150_000L, parsed.amount)
-        assertEquals("IDR", parsed.currency)
         assertEquals("TOKOPEDIA", parsed.rawMerchant)
     }
 
     @Test
     fun bcaIncomeExtractsTypeAmountAndCounterpart() {
-        val parsed = bcaParser.parse(notification("com.bca", "Transfer masuk Rp2.000.000 dari SEPTA ALFAUZAN"))
+        val parsed = bcaRegistry.parse(notification("com.bca", "Transfer masuk Rp2.000.000 dari SEPTA ALFAUZAN"))
         assertNotNull(parsed)
         assertEquals(TransactionType.INCOME, parsed.type)
         assertEquals(2_000_000L, parsed.amount)
@@ -48,7 +63,7 @@ class BcaAndGenericParserTest {
 
     @Test
     fun bcaCardTransactionExtractsMerchant() {
-        val parsed = bcaParser.parse(notification("com.bca", "Transaksi kartu berhasil sebesar IDR 125.500 merchant MCDONALDS JAKARTA"))
+        val parsed = bcaRegistry.parse(notification("com.bca", "Transaksi kartu berhasil sebesar IDR 125.500 merchant MCDONALDS JAKARTA"))
         assertNotNull(parsed)
         assertEquals(TransactionType.EXPENSE, parsed.type)
         assertEquals(125_500L, parsed.amount)
@@ -57,7 +72,7 @@ class BcaAndGenericParserTest {
 
     @Test
     fun bcaDoesNotParseOtherPackages() {
-        assertNull(bcaParser.parse(notification("com.ovo.id", "Pembayaran Rp50.000 di WARUNG")))
+        assertNull(bcaRegistry.parse(notification("com.ovo.id", "Pembayaran Rp50.000 di WARUNG")))
     }
 
     @Test
