@@ -3,7 +3,7 @@ package com.septaalfauzan.saku.ui.navigation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -91,6 +91,8 @@ fun App() {
         }
     }
 
+
+
     SakuTheme {
         val navController = rememberNavController()
         val backStackEntry by navController.currentBackStackEntryAsState()
@@ -98,94 +100,96 @@ fun App() {
         var showScanSheet by remember { mutableStateOf(false) }
         val sheetState = rememberModalBottomSheetState()
         Scaffold(
-floatingActionButton = {
-    AnimatedVisibility(
-        visible = isFabVisible && currentRoute == Routes.DASHBOARD,
-        enter = scaleIn(),
-        exit = scaleOut()
-    ) {
-    FloatingActionButton(
-        containerColor = SakuTheme.palette.ink,
-        onClick = {
-            showScanSheet = true
-        }
-    ) {
-        Icon(
-            SakuIcons.Add,
-            contentDescription = "Add",
-            tint = Color.White,
-            modifier = Modifier.size(22.dp)
-        )
-
-    }
-    }
-}
-        ){ _ ->
-
-        Box(Modifier.fillMaxSize().padding(top = 24.dp)) {
-            NavHost(
-                navController = navController,
-                startDestination = Routes.DASHBOARD,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                composable(Routes.DASHBOARD) {
-                    DashboardRoute(
-                        onAdd = { navController.navigate(Routes.ADD) },
-                        onOpenReview = { navController.navigate(Routes.REVIEW) },
-                        onOpenTracking = { navController.navigate(Routes.TRACKING) },
-                        onOpenTransaction = { id -> navController.navigate(Routes.detail(id)) },
-                        onOpenAll = { navController.navigate(Routes.TRANSACTIONS) },
-                    )
-                }
-                composable(Routes.TRANSACTIONS) {
-                    TransactionListRoute(
-                        onOpen = { id -> navController.navigate(Routes.detail(id)) },
-                        onAdd = { navController.navigate(Routes.ADD) },
-                    )
-                }
-                composable(Routes.ADD) { AddEditRoute(onDone = { navController.popBackStack() }) }
-                composable(
-                    Routes.EDIT,
-                    arguments = listOf(androidx.navigation.navArgument("transactionId") {
-                        type = androidx.navigation.NavType.StringType
-                    }),
-                ) { entry ->
-                    AddEditRoute(
-                        transactionId = entry.arguments?.getString("transactionId"),
-                        onDone = { navController.popBackStack() },
-                    )
-                }
-                composable(
-                    Routes.DETAIL,
-                    arguments = listOf(androidx.navigation.navArgument("transactionId") {
-                        type = androidx.navigation.NavType.StringType
-                    }),
-                ) { entry ->
-                    val id = entry.arguments?.getString("transactionId")
-                    if (id != null) {
-                        DetailRoute(
-                            transactionId = id,
-                            onEdit = { navController.navigate(Routes.edit(id)) },
-                            onDeleted = { navController.popBackStack() },
+            floatingActionButton = {
+                AnimatedVisibility(
+                    visible = isFabVisible && currentRoute == Routes.DASHBOARD,
+                    enter = scaleIn(),
+                    exit = scaleOut()
+                ) {
+                    FloatingActionButton(
+                        containerColor = SakuTheme.palette.ink,
+                        contentColor = if(isSystemInDarkTheme()) SakuTheme.palette.crimson else Color.White,
+                    onClick = {
+                            showScanSheet = true
+                        }
+                    ) {
+                        Icon(
+                            SakuIcons.Add,
+                            contentDescription = "Add",
+                            modifier = Modifier.size(22.dp)
                         )
+
                     }
                 }
-                composable(Routes.REVIEW) {
-                    ReviewQueueRoute(
-                        onEdit = { id -> navController.navigate(Routes.edit(id)) },
-                        onBack = { navController.popBackStack() },
-                    )
-                }
-                composable(Routes.TRACKING) {
-                    TrackingRoute(onBack = { navController.popBackStack() })
-                }
-                composable(Routes.RULES) {
-                    TrackingRoute(onBack = null)
-                }
-                composable(Routes.SCANNER) {
-                    ScannerScreen(onBack = { navController.popBackStack() })
-                }
             }
+        ) { _ ->
+
+            Box(Modifier
+                .fillMaxSize()
+                .padding(top = 24.dp)) {
+                NavHost(
+                    navController = navController,
+                    startDestination = Routes.DASHBOARD,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    composable(Routes.DASHBOARD) {
+                        DashboardRoute(
+                            onAdd = { navController.navigate(Routes.ADD) },
+                            onOpenReview = { navController.navigate(Routes.REVIEW) },
+                            onOpenTracking = { navController.navigate(Routes.TRACKING) },
+                            onOpenTransaction = { id -> navController.navigate(Routes.detail(id)) },
+                            onOpenAll = { navController.navigate(Routes.TRANSACTIONS) },
+                        )
+                    }
+                    composable(Routes.TRANSACTIONS) {
+                        TransactionListRoute(
+                            onOpen = { id -> navController.navigate(Routes.detail(id)) },
+                            onAdd = { navController.navigate(Routes.ADD) },
+                        )
+                    }
+                    composable(Routes.ADD) { AddEditRoute(onDone = { navController.popBackStack() }) }
+                    composable(
+                        Routes.EDIT,
+                        arguments = listOf(androidx.navigation.navArgument("transactionId") {
+                            type = androidx.navigation.NavType.StringType
+                        }),
+                    ) { entry ->
+                        AddEditRoute(
+                            transactionId = entry.arguments?.getString("transactionId"),
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
+                    composable(
+                        Routes.DETAIL,
+                        arguments = listOf(androidx.navigation.navArgument("transactionId") {
+                            type = androidx.navigation.NavType.StringType
+                        }),
+                    ) { entry ->
+                        val id = entry.arguments?.getString("transactionId")
+                        if (id != null) {
+                            DetailRoute(
+                                transactionId = id,
+                                onEdit = { navController.navigate(Routes.edit(id)) },
+                                onDeleted = { navController.popBackStack() },
+                            )
+                        }
+                    }
+                    composable(Routes.REVIEW) {
+                        ReviewQueueRoute(
+                            onEdit = { id -> navController.navigate(Routes.edit(id)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable(Routes.TRACKING) {
+                        TrackingRoute(onBack = { navController.popBackStack() })
+                    }
+                    composable(Routes.RULES) {
+                        TrackingRoute(onBack = null)
+                    }
+                    composable(Routes.SCANNER) {
+                        ScannerScreen(onBack = { navController.popBackStack() })
+                    }
+                }
 
 //                Box(
 //                    modifier = Modifier
@@ -205,7 +209,7 @@ floatingActionButton = {
 //                        onScanAdd = { showScanSheet = true },
 //                    )
 //                }
-        }
+            }
         }
 
         if (showScanSheet) {

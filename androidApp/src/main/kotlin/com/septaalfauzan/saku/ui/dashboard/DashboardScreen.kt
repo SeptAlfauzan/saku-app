@@ -52,6 +52,7 @@ fun DashboardRoute(
     val itemsNeedReview by viewModel.needReviewState.collectAsState()
     val palette = SakuTheme.palette
     val type = SakuTheme.type
+    val isNotificationListenerState by viewModel.notificationListenerState.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding),
@@ -73,20 +74,20 @@ fun DashboardRoute(
                     Modifier.size(40.dp).background(palette.chalk, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(SakuIcons.Listener, contentDescription = null, tint = palette.crimson, modifier = Modifier.size(20.dp))
+                    Icon( if(isNotificationListenerState) SakuIcons.Listener else SakuIcons.ListenerDisabled, contentDescription = null, tint = palette.crimson, modifier = Modifier.size(20.dp))
                 }
                 Column(Modifier.weight(1f).padding(start = 12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(8.dp).background(palette.crimson, CircleShape))
                         Text(
-                            "  Smart Listener Active",
+                            "  Smart Listener ${if(isNotificationListenerState) "Active" else "Disabled"}",
                             style = type.labelCaps,
                             color = palette.crimson,
                             modifier = Modifier.padding(start = 4.dp),
                         )
                     }
                     Text(
-                        "Transaksi dari GoPay, OVO, DANA, dan BCA otomatis dicatat.",
+                        if(isNotificationListenerState) "Transaksi dari GoPay, OVO, DANA, dan BCA otomatis dicatat." else "Pengaturan Automatic Tracking anda mati, silahkan nyalakan terlebih dahulu",
                         style = type.bodySm,
                         color = palette.slate,
                         modifier = Modifier.padding(top = 4.dp),
@@ -114,7 +115,7 @@ fun DashboardRoute(
             Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
                 BadgedBox(
                     badge = {if(itemsNeedReview == 0) Spacer(modifier = Modifier) else Badge {
-                            Text("1")
+                            Text(itemsNeedReview.toString())
                         }
             }
                     ,

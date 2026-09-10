@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsOff
 
 object SakuIcons {
     val Dashboard: ImageVector = Icons.Outlined.BarChart
@@ -35,6 +36,7 @@ object SakuIcons {
     val Edit: ImageVector = Icons.Filled.Edit
     val Delete: ImageVector = Icons.Filled.Delete
     val Listener: ImageVector = Icons.Outlined.NotificationsActive
+    val ListenerDisabled: ImageVector = Icons.Outlined.NotificationsOff
     val FlashOn: ImageVector = Icons.Outlined.FlashOn
     val FlashOff: ImageVector = Icons.Outlined.FlashOff
     val Verified: ImageVector = Icons.Outlined.Verified

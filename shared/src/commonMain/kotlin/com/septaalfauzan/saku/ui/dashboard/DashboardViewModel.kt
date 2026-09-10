@@ -7,8 +7,10 @@ import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.usecase.GetMonthlySummary
 import com.septaalfauzan.saku.domain.usecase.ObservePending
+import com.septaalfauzan.saku.domain.usecase.ObserveTrackingEnabled
 import com.septaalfauzan.saku.domain.usecase.ObserveTransactions
 import com.septaalfauzan.saku.extension.isToday
+import com.septaalfauzan.saku.ui.tracking.TrackingUiState
 import com.septaalfauzan.saku.util.monthLabel
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +34,7 @@ class DashboardViewModel(
     observeTransactions: ObserveTransactions,
     getMonthlySummary: GetMonthlySummary,
     observePending: ObservePending,
+    observeTrackingEnabled: ObserveTrackingEnabled,
 ) : ViewModel() {
 
     val uiState: StateFlow<DashboardUiState> = observeTransactions()
@@ -60,17 +63,23 @@ class DashboardViewModel(
                         transaction.type == TransactionType.EXPENSE
             }
                 .sortedBy { item -> item.occurredAt }
-                .map { item -> item.amount / 10.toFloat()  }
+                .map { item -> item.amount / 10.toFloat() }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList(),
         )
-    val needReviewState: StateFlow<Int> = observePending().map {state ->  state.size }.stateIn(
+    val needReviewState: StateFlow<Int> = observePending().map { state -> state.size }.stateIn(
         scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = 0,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = 0,
 
+        )
+
+    val notificationListenerState: StateFlow<Boolean> = observeTrackingEnabled().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false
     )
 }

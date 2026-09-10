@@ -3,6 +3,7 @@ package com.septaalfauzan.saku.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,7 +43,7 @@ fun PillButton(
     }
     val content = when (variant) {
         PillButtonVariant.GHOST -> palette.ink
-        else -> Color.White
+        else ->   if(isSystemInDarkTheme()) SakuTheme.palette.crimson else Color.White
     }
     Box(
         modifier = modifier
