@@ -32,6 +32,7 @@ import com.septaalfauzan.saku.notification.provider.bca.BcaNotificationParser
 import com.septaalfauzan.saku.notification.provider.dana.DanaNotificationParser
 import com.septaalfauzan.saku.notification.provider.gopay.GoPayNotificationParser
 import com.septaalfauzan.saku.notification.provider.ovo.OvoNotificationParser
+import com.septaalfauzan.saku.notification.provider.testapp.TestAppParser
 import com.septaalfauzan.saku.notification.usecase.ProcessNotificationUseCase
 import com.septaalfauzan.saku.ui.addedit.AddEditTransactionViewModel
 import com.septaalfauzan.saku.ui.dashboard.DashboardViewModel
@@ -72,6 +73,7 @@ val appModule = module {
     single { GoPayNotificationParser() }
     single { OvoNotificationParser() }
     single { DanaNotificationParser() }
+    single { TestAppParser() }
     single {
         ParserRegistry(
             listOf(
@@ -79,6 +81,8 @@ val appModule = module {
                 get<GoPayNotificationParser>(),
                 get<OvoNotificationParser>(),
                 get<DanaNotificationParser>(),
+                //TODO: delete this after testing
+                get<TestAppParser>(),
             ),
         )
     }
