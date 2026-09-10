@@ -24,7 +24,7 @@ class TrackingPipelineSpinTest {
     @Test
     fun trackingPipelineEmitsFiniteDistinctValues() {
         val db = buildInMemory()
-        val repo = RoomNotificationSettingsRepository(db.sourceDao(), db.settingsDao())
+        val repo = RoomNotificationSettingsRepository(db.sourceDao(), db.settingsDao(), db.keywordDao())
 
         var emissions = 0
         var distinct = 0

@@ -42,7 +42,7 @@ class AppDatabaseMigrationTest {
                 factory = { AppDatabaseConstructor.initialize() },
                 name = fileName,
             ).setDriver(BundledSQLiteDriver())
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
             val restored = db.transactionDao().getById("old1")
             assertNotNull(restored)

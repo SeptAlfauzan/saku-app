@@ -1,5 +1,8 @@
 package com.septaalfauzan.saku.notification
 
+import com.septaalfauzan.saku.domain.model.KeywordType
+import com.septaalfauzan.saku.domain.model.NotificationSource
+import com.septaalfauzan.saku.domain.model.ParserKeyword
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.notification.generic.GenericNotificationParser
 import com.septaalfauzan.saku.notification.model.NotificationData
@@ -71,7 +74,25 @@ class BcaAndGenericParserTest {
 
     @Test
     fun registryPrefersProviderParserOverGeneric() {
-        val registry = ParserRegistry(listOf(bcaParser), generic)
+        val bcaSource = NotificationSource("com.bca", "bca", enabled = true)
+        val bcaKeywords = listOf(
+            ParserKeyword("com.bca", KeywordType.EXPENSE, "pembayaran"),
+            ParserKeyword("com.bca", KeywordType.EXPENSE, "pembelian"),
+            ParserKeyword("com.bca", KeywordType.EXPENSE, "debit"),
+            ParserKeyword("com.bca", KeywordType.EXPENSE, "transaksi kartu"),
+            ParserKeyword("com.bca", KeywordType.EXPENSE, "pengeluaran"),
+            ParserKeyword("com.bca", KeywordType.INCOME, "transfer masuk"),
+            ParserKeyword("com.bca", KeywordType.INCOME, "dana masuk"),
+            ParserKeyword("com.bca", KeywordType.INCOME, "diterima"),
+            ParserKeyword("com.bca", KeywordType.INCOME, "pemasukan"),
+            ParserKeyword("com.bca", KeywordType.MERCHANT, "berhasil di "),
+            ParserKeyword("com.bca", KeywordType.MERCHANT, "di "),
+            ParserKeyword("com.bca", KeywordType.MERCHANT, "ke "),
+            ParserKeyword("com.bca", KeywordType.MERCHANT, "dari "),
+            ParserKeyword("com.bca", KeywordType.MERCHANT, "merchant "),
+        )
+        val registry = ParserRegistry()
+        registry.rebuild(listOf(bcaSource), mapOf("com.bca" to bcaKeywords))
         val parsed = registry.parse(notification("com.bca", "Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
         assertNotNull(parsed)
         assertEquals(TransactionType.EXPENSE, parsed.type)
@@ -80,7 +101,8 @@ class BcaAndGenericParserTest {
 
     @Test
     fun registryFallsBackToGenericForUnknownProvider() {
-        val registry = ParserRegistry(listOf(bcaParser), generic)
+        val registry = ParserRegistry()
+        registry.rebuild(emptyList(), emptyMap())
         val parsed = registry.parse(notification("com.somebank", "Pembayaran Rp75.000 berhasil"))
         assertNotNull(parsed)
         assertEquals(75_000L, parsed.amount)
