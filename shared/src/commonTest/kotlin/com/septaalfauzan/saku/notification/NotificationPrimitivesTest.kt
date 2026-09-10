@@ -31,6 +31,10 @@ class NotificationPrimitivesTest {
         assertEquals(150_000L, AmountNormalizer.normalize("IDR 150,000"))
         assertEquals(150_000L, AmountNormalizer.normalize("IDR 150.000"))
         assertEquals(150_000L, AmountNormalizer.normalize("150000"))
+        assertEquals(38_000L, AmountNormalizer.normalize("Rp 38.000,00"))
+        assertEquals(38_000L, AmountNormalizer.normalize("IDR 38,000.00"))
+        assertEquals(38_000L, AmountNormalizer.normalize("38.000"))
+        assertEquals(38_000L, AmountNormalizer.normalize("38,000"))
         assertNull(AmountNormalizer.normalize("Rp????"))
         assertNull(AmountNormalizer.normalize(""))
     }
