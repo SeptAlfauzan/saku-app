@@ -2,7 +2,6 @@ package com.septaalfauzan.saku.notification
 
 import android.app.Notification
 import android.service.notification.StatusBarNotification
-import android.util.Log
 import com.septaalfauzan.saku.notification.model.NotificationData
 import kotlin.time.Instant
 
