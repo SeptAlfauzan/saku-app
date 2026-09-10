@@ -2,6 +2,7 @@ package com.septaalfauzan.saku.notification
 
 import android.app.Notification
 import android.service.notification.StatusBarNotification
+import android.util.Log
 import com.septaalfauzan.saku.notification.model.NotificationData
 import kotlin.time.Instant
 
@@ -20,12 +21,14 @@ object NotificationMapper {
             }
         }.trim().ifBlank { null }
         val title = extras?.getCharSequence(Notification.EXTRA_TITLE)?.toString()
-        return NotificationData(
+        val notificationData = NotificationData(
             packageName = sbn.packageName,
             title = title,
             body = body,
             postedAt = Instant.fromEpochMilliseconds(sbn.postTime),
             notificationId = sbn.id,
         )
+
+        return notificationData
     }
 }

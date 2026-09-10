@@ -45,7 +45,8 @@ fun BalanceCard(
         modifier = Modifier
             .fillMaxWidth()
             .background(palette.canvas, RoundedCornerShape(32.dp))
-            .border(1.dp, palette.hairline, RoundedCornerShape(32.dp)).clip(RoundedCornerShape(32.dp)),
+            .border(1.dp, palette.hairline, RoundedCornerShape(32.dp))
+            .clip(RoundedCornerShape(32.dp)),
         verticalArrangement = Arrangement.spacedBy(SakuDp.spaceMd),
     ) {
         Row(
@@ -70,24 +71,31 @@ fun BalanceCard(
             contentPadding = PaddingValues(start = SakuDp.spaceLg),
         ) {
             item {
-
-                    MetricPod(
-                        label = "Income",
-                        text = "+${formatRupiah(income)}",
-                        icon = Icons.Outlined.ArrowDownward,
-                        modifier = Modifier.padding(end = SakuDp.spaceSm).weight(1f)
-                    )
-            MetricPod(
-                label = "Expense",
-                text = "-${formatRupiah(expense)}",
-                icon = Icons.Outlined.ArrowUpward,
-                modifier = Modifier.weight(1f),
-                accent = true,
-            )
+                MetricPod(
+                    label = "Income",
+                    text = "+${formatRupiah(income)}",
+                    icon = Icons.Outlined.ArrowDownward,
+                    modifier = Modifier
+                        .padding(end = SakuDp.spaceSm)
+                        .weight(1f)
+                )
+                MetricPod(
+                    label = "Expense",
+                    text = "-${formatRupiah(expense)}",
+                    icon = Icons.Outlined.ArrowUpward,
+                    modifier = Modifier
+                        .padding(end = SakuDp.spaceSm)
+                        .weight(1f),
+                    accent = true,
+                )
             }
         }
         Column {
-            LabelCaps("Daily Burn Rate", color = palette.slate, modifier = Modifier.padding(horizontal = SakuDp.spaceLg))
+            LabelCaps(
+                "Daily Burn Rate",
+                color = palette.slate,
+                modifier = Modifier.padding(horizontal = SakuDp.spaceLg)
+            )
             Spacer(Modifier.height(SakuDp.spaceXs))
             BurnRateCurve(burnRate)
         }

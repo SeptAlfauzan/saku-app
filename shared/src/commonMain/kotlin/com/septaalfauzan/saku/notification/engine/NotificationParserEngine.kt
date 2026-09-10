@@ -7,7 +7,6 @@ import com.septaalfauzan.saku.notification.merchant.MerchantResolver
 import com.septaalfauzan.saku.notification.model.NotificationData
 import com.septaalfauzan.saku.notification.model.ParsedTransaction
 import com.septaalfauzan.saku.notification.provider.ParserRegistry
-
 class NotificationParserEngine(
     private val parserRegistry: ParserRegistry,
 ) {

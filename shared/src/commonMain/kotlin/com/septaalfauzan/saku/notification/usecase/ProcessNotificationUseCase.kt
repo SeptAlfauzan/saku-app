@@ -26,7 +26,7 @@ class ProcessNotificationUseCase(
         if (!settings.observeTrackingEnabled().first()) return
 
         val enabled = settings.observeSources().first()
-            .any { it.packageName == notification.packageName && it.enabled }
+            .any { it.packageName == notification.packageName && it.enabled}
         if (!enabled) return
 
         val parsed = engine.process(notification) ?: return
@@ -37,7 +37,8 @@ class ProcessNotificationUseCase(
         val now = clock()
 
         val key = DuplicateKey(notification.packageName, type, amount)
-        if (duplicateDetector.isDuplicate(key, occurredAt.toEpochMilliseconds())) return
+        val isDuplicateWithInTimeRange = duplicateDetector.isDuplicate(key, occurredAt.toEpochMilliseconds())
+        if (isDuplicateWithInTimeRange) return
 
         val autoConfirm = settings.observeAutoConfirm().first()
         val status = if (autoConfirm && parsed.confidence >= ConfidenceEngine.AUTO_CONFIRM_THRESHOLD) {
