@@ -12,12 +12,15 @@ import com.septaalfauzan.saku.data.repository.RoomNotificationSettingsRepository
 import com.septaalfauzan.saku.data.repository.RoomTransactionRepository
 import com.septaalfauzan.saku.domain.repository.NotificationSettingsRepository
 import com.septaalfauzan.saku.domain.repository.TransactionRepository
+import com.septaalfauzan.saku.domain.usecase.AddNotificationSource
 import com.septaalfauzan.saku.domain.usecase.AddTransaction
+import com.septaalfauzan.saku.domain.usecase.DeleteNotificationSource
 import com.septaalfauzan.saku.domain.usecase.DeleteTransaction
 import com.septaalfauzan.saku.domain.usecase.GetMonthlySummary
 import com.septaalfauzan.saku.domain.usecase.ObserveAutoConfirm
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
 import com.septaalfauzan.saku.domain.usecase.ObserveNotificationSources
+import com.septaalfauzan.saku.domain.usecase.ObserveParserKeywords
 import com.septaalfauzan.saku.domain.usecase.ObservePending
 import com.septaalfauzan.saku.domain.usecase.ObserveTrackingEnabled
 import com.septaalfauzan.saku.domain.usecase.ObserveTransactions
@@ -25,6 +28,7 @@ import com.septaalfauzan.saku.domain.usecase.SetAutoConfirm
 import com.septaalfauzan.saku.domain.usecase.SetNotificationSourceEnabled
 import com.septaalfauzan.saku.domain.usecase.SetTrackingEnabled
 import com.septaalfauzan.saku.domain.usecase.SetTransactionStatus
+import com.septaalfauzan.saku.domain.usecase.UpdateParserKeywords
 import com.septaalfauzan.saku.domain.usecase.UpdateTransaction
 import com.septaalfauzan.saku.notification.duplicate.DuplicateDetector
 import com.septaalfauzan.saku.notification.engine.NotificationParserEngine
@@ -66,6 +70,10 @@ val appModule = module {
     singleOf(::SetTransactionStatus)
     singleOf(::ObserveNotificationSources)
     singleOf(::SetNotificationSourceEnabled)
+    singleOf(::AddNotificationSource)
+    singleOf(::DeleteNotificationSource)
+    singleOf(::UpdateParserKeywords)
+    singleOf(::ObserveParserKeywords)
     singleOf(::ObserveTrackingEnabled)
     singleOf(::SetTrackingEnabled)
     singleOf(::ObserveAutoConfirm)
