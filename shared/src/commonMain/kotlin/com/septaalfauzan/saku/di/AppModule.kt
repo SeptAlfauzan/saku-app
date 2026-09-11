@@ -9,15 +9,21 @@ import com.septaalfauzan.saku.data.dao.TransactionDao
 import com.septaalfauzan.saku.data.database.AppDatabase
 import com.septaalfauzan.saku.data.database.buildRoomDatabase
 import com.septaalfauzan.saku.data.database.createDatabaseBuilder
+import com.septaalfauzan.saku.data.remote.ApiService
+import com.septaalfauzan.saku.data.remote.ApiServiceImpl
+import com.septaalfauzan.saku.data.remote.RemoteClient
+import com.septaalfauzan.saku.data.repository.RemoteOcrRepository
 import com.septaalfauzan.saku.data.repository.RoomNotificationSettingsRepository
 import com.septaalfauzan.saku.data.repository.RoomTransactionRepository
 import com.septaalfauzan.saku.domain.repository.NotificationSettingsRepository
+import com.septaalfauzan.saku.domain.repository.OcrRepository
 import com.septaalfauzan.saku.domain.repository.TransactionRepository
 import com.septaalfauzan.saku.domain.usecase.AddNotificationSource
 import com.septaalfauzan.saku.domain.usecase.AddTransaction
 import com.septaalfauzan.saku.domain.usecase.DeleteNotificationSource
 import com.septaalfauzan.saku.domain.usecase.DeleteTransaction
 import com.septaalfauzan.saku.domain.usecase.GetMonthlySummary
+import com.septaalfauzan.saku.domain.usecase.GetReceiptValue
 import com.septaalfauzan.saku.domain.usecase.ObserveAutoConfirm
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
 import com.septaalfauzan.saku.domain.usecase.ObserveNotificationSources
@@ -39,6 +45,7 @@ import com.septaalfauzan.saku.ui.addedit.AddEditTransactionViewModel
 import com.septaalfauzan.saku.ui.dashboard.DashboardViewModel
 import com.septaalfauzan.saku.ui.detail.TransactionDetailViewModel
 import com.septaalfauzan.saku.ui.review.ReviewQueueViewModel
+import com.septaalfauzan.saku.ui.scanreceipt.ScanReceiptViewmodel
 import com.septaalfauzan.saku.ui.tracking.TrackingViewModel
 import com.septaalfauzan.saku.ui.transactions.TransactionListViewModel
 import org.koin.core.module.dsl.singleOf
@@ -53,17 +60,21 @@ val appModule = module {
     single { get<AppDatabase>().sourceDao() }
     single { get<AppDatabase>().settingsDao() }
     single { get<AppDatabase>().keywordDao() }
+    single { RemoteClient().createHttpClient() }
+    single<ApiService> { ApiServiceImpl(get(), "https://saku-api.septaalfauzan.my.id") }
     single<TransactionRepository> { RoomTransactionRepository(get(), get()) }
     single<NotificationSettingsRepository> {
         val registry = get<ParserRegistry>()
         RoomNotificationSettingsRepository(get(), get(), get()).apply {
             onConfigChanged = {
                 val sources = observeSources().first()
-                val allKeywords = sources.associate { it.packageName to getKeywords(it.packageName) }
+                val allKeywords =
+                    sources.associate { it.packageName to getKeywords(it.packageName) }
                 registry.rebuild(sources, allKeywords)
             }
         }
     }
+    single<OcrRepository> { RemoteOcrRepository(get()) }
 
     singleOf(::ObserveTransactions)
     singleOf(::ObserveCategories)
@@ -83,6 +94,7 @@ val appModule = module {
     singleOf(::SetTrackingEnabled)
     singleOf(::ObserveAutoConfirm)
     singleOf(::SetAutoConfirm)
+    singleOf(::GetReceiptValue)
 
     single { ParserRegistry() }
     single { NotificationParserEngine(get()) }
@@ -93,10 +105,15 @@ val appModule = module {
     viewModelOf(::TransactionListViewModel)
     viewModelOf(::TrackingViewModel)
     viewModelOf(::ReviewQueueViewModel)
+    viewModelOf(::ScanReceiptViewmodel)
     viewModel { params ->
         TransactionDetailViewModel(get(), get(), params.getOrNull() ?: "")
     }
     viewModel { params ->
-        AddEditTransactionViewModel(get(), get(), get(), get(), params.getOrNull<String>())
+        AddEditTransactionViewModel(
+            get(), get(), get(), get(),
+            params.values.getOrNull(0) as? String,
+            params.values.getOrNull(1) as? String,
+        )
     }
 }

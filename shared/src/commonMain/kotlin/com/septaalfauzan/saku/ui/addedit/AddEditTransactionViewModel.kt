@@ -58,6 +58,7 @@ class AddEditTransactionViewModel(
     private val addTransaction: AddTransaction,
     private val updateTransaction: UpdateTransaction,
     transactionId: String? = null,
+    prefillJson: String? = null,
 ) : ViewModel() {
 
     private val eventFlow = MutableStateFlow<AddEditEvent?>(null)
@@ -109,6 +110,10 @@ class AddEditTransactionViewModel(
                         occurredAtMillis = existing.occurredAt.toEpochMilliseconds(),
                     )
                 }
+            }
+        } else if (!prefillJson.isNullOrBlank()) {
+            ScanPrefill.decode(prefillJson)?.let { prefill ->
+                fieldState.value = fieldState.value.withPrefill(prefill)
             }
         }
     }
