@@ -17,7 +17,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.ui.components.EmptyState
 import com.septaalfauzan.saku.ui.components.FilterChip
 import com.septaalfauzan.saku.ui.components.TransactionRow
@@ -37,12 +39,18 @@ fun TransactionListRoute(onOpen: (String) -> Unit, onAdd: () -> Unit) {
 
     Column(Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding)) {
         Spacer(Modifier.height(SakuDp.spaceLg))
-        Text("Transactions", style = type.headlineLg, color = palette.ink)
+        Text(stringResource(R.string.transactions_title), style = type.headlineLg, color = palette.ink)
         Spacer(Modifier.height(SakuDp.spaceMd))
         Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
             TransactionFilter.entries.forEach { filter ->
                 FilterChip(
-                    label = filter.name,
+                    label = stringResource(
+                        when (filter) {
+                            TransactionFilter.ALL -> R.string.transactions_filter_all
+                            TransactionFilter.INCOME -> R.string.common_income
+                            TransactionFilter.EXPENSE -> R.string.common_expense
+                        },
+                    ),
                     selected = state.filter == filter,
                     onClick = { viewModel.setFilter(filter) },
                 )
@@ -52,9 +60,9 @@ fun TransactionListRoute(onOpen: (String) -> Unit, onAdd: () -> Unit) {
 
         if (state.transactions.isEmpty()) {
             EmptyState(
-                title = "No transactions",
-                body = "Nothing matches this filter yet.",
-                ctaLabel = "Add Transaction",
+                title = stringResource(R.string.transactions_empty),
+                body = stringResource(R.string.transactions_empty_filtered),
+                ctaLabel = stringResource(R.string.dashboard_add_transaction),
                 onCta = onAdd,
             )
         } else {
