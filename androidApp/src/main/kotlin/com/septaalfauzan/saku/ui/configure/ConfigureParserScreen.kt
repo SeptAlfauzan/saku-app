@@ -42,10 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.septaalfauzan.saku.domain.model.KeywordType
 import com.septaalfauzan.saku.notification.model.NotificationData
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.notification.provider.ConfigurableParser
 import com.septaalfauzan.saku.ui.components.EmptyState
 import com.septaalfauzan.saku.ui.components.LabelCaps
@@ -80,15 +82,15 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(SakuIcons.Back, contentDescription = "Back", tint = palette.ink)
+                Icon(SakuIcons.Back, contentDescription = stringResource(R.string.common_back), tint = palette.ink)
             }
             Column(Modifier.weight(1f)) {
-                Text("Configure Parser", style = type.headlineLg, color = palette.ink)
-                Text("Automated listener rules", style = type.bodySm, color = palette.slate)
+                Text(stringResource(R.string.configure_title), style = type.headlineLg, color = palette.ink)
+                Text(stringResource(R.string.configure_subtitle), style = type.bodySm, color = palette.slate)
             }
             if (state.selectedPackage != null) {
                 TextButton(onClick = { viewModel.onSave(); focusManager.clearFocus() }) {
-                    Text("Done", color = palette.crimson, style = type.labelMd)
+                    Text(stringResource(R.string.configure_done), color = palette.crimson, style = type.labelMd)
                 }
             }
         }
@@ -99,7 +101,7 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
             value = state.searchQuery,
             onValueChange = { viewModel.onSearchQueryChanged(it) },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search app name or package…", style = type.bodyMd) },
+            placeholder = { Text(stringResource(R.string.configure_search_hint), style = type.bodyMd) },
             leadingIcon = { Icon(SakuIcons.Search, contentDescription = null, tint = palette.slate) },
             shape = RoundedCornerShape(28.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -164,7 +166,7 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
                         Text(state.selectedPackage!!, style = type.bodySm, color = palette.slate)
                     }
                     TextButton(onClick = { viewModel.onDismissApp() }) {
-                        Text("Change", style = type.labelMd, color = palette.slate)
+                        Text(stringResource(R.string.configure_change), style = type.labelMd, color = palette.slate)
                     }
                 }
             }
@@ -172,8 +174,8 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
             Spacer(Modifier.height(SakuDp.spaceMd))
 
             KeywordSection(
-                title = "Expense Keywords",
-                description = "Triggers a debit ledger update",
+                title = stringResource(R.string.configure_expense_keywords),
+                description = stringResource(R.string.configure_expense_desc),
                 dotColor = palette.crimson,
                 keywords = state.expenseWords,
                 onAdd = { viewModel.onAddKeyword(KeywordType.EXPENSE, it) },
@@ -181,8 +183,8 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(SakuDp.spaceSm))
             KeywordSection(
-                title = "Income Keywords",
-                description = "Triggers a credit inbound receipt",
+                title = stringResource(R.string.configure_income_keywords),
+                description = stringResource(R.string.configure_income_desc),
                 dotColor = palette.slate,
                 keywords = state.incomeWords,
                 onAdd = { viewModel.onAddKeyword(KeywordType.INCOME, it) },
@@ -190,8 +192,8 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(SakuDp.spaceSm))
             KeywordSection(
-                title = "Merchant Extraction Prefixes",
-                description = "Anchors used to isolate the payee entity",
+                title = stringResource(R.string.configure_merchant_prefixes),
+                description = stringResource(R.string.configure_merchant_desc),
                 dotColor = palette.slate,
                 keywords = state.merchantWords,
                 onAdd = { viewModel.onAddKeyword(KeywordType.MERCHANT, it) },
@@ -210,14 +212,14 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
             )
         } else {
             EmptyState(
-                title = "Select an app",
-                body = "Search for a financial app to configure its parser keywords.",
+                title = stringResource(R.string.configure_select_app),
+                body = stringResource(R.string.configure_select_app_body),
             )
         }
 
         Spacer(Modifier.height(SakuDp.spaceMd))
 
-        LabelCaps("Configured Apps", color = palette.slate)
+        LabelCaps(stringResource(R.string.configure_configured_apps), color = palette.slate)
         Spacer(Modifier.height(SakuDp.spaceXs))
 
         val configuredSources = sources.filter { source ->
@@ -225,7 +227,7 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
         }
 
         if (configuredSources.isEmpty()) {
-            EmptyState(title = "No configured apps", body = "Add a financial app to get started.")
+            EmptyState(title = stringResource(R.string.configure_no_apps), body = stringResource(R.string.configure_no_apps_body))
         } else {
             configuredSources.forEach { source ->
                 ConfiguredAppRow(
@@ -281,7 +283,7 @@ private fun KeywordSection(
                     }
                     Text(description, style = type.bodySm, color = palette.slate)
                 }
-                Text("${keywords.size} rules", style = type.labelCaps, color = palette.slate)
+                Text(stringResource(R.string.configure_rules_count, keywords.size), style = type.labelCaps, color = palette.slate)
             }
 
             if (keywords.isNotEmpty()) {
@@ -294,7 +296,7 @@ private fun KeywordSection(
                             trailingIcon = {
                                 Icon(
                                     SakuIcons.Close,
-                                    contentDescription = "Remove",
+                                    contentDescription = stringResource(R.string.common_remove),
                                     modifier = Modifier.size(16.dp),
                                 )
                             },
@@ -311,7 +313,7 @@ private fun KeywordSection(
                     value = inputText,
                     onValueChange = { inputText = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Add keyword…", style = type.bodySm) },
+                    placeholder = { Text(stringResource(R.string.configure_add_keyword_hint), style = type.bodySm) },
                     shape = RoundedCornerShape(20.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -329,7 +331,7 @@ private fun KeywordSection(
                 )
                 Spacer(Modifier.width(SakuDp.spaceXs))
                 PillButton(
-                    "Add",
+                    stringResource(R.string.configure_add),
                     onClick = {
                         if (inputText.isNotBlank()) {
                             onAdd(inputText)
@@ -401,9 +403,9 @@ private fun LiveTestSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                LabelCaps("Live Simulation")
+                LabelCaps(stringResource(R.string.configure_live_simulation))
                 if (testResult?.matched == true) {
-                    Text("Auto-matched", style = type.labelMd, color = palette.crimson)
+                    Text(stringResource(R.string.configure_auto_matched), style = type.labelMd, color = palette.crimson)
                 }
             }
 
@@ -413,7 +415,7 @@ private fun LiveTestSection(
                 value = text,
                 onValueChange = onTextChange,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Paste notification text…", style = type.bodySm) },
+                placeholder = { Text(stringResource(R.string.configure_paste_hint), style = type.bodySm) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = palette.canvas,
@@ -427,13 +429,13 @@ private fun LiveTestSection(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    TestResultChip("Type", testResult.type ?: "-", Modifier.weight(1f))
-                    TestResultChip("Amount", testResult.amount?.let { "Rp $it" } ?: "-", Modifier.weight(1f))
-                    TestResultChip("Merchant", testResult.merchant ?: "-", Modifier.weight(1f))
+                    TestResultChip(stringResource(R.string.configure_type), testResult.type ?: "-", Modifier.weight(1f))
+                    TestResultChip(stringResource(R.string.common_amount), testResult.amount?.let { "Rp $it" } ?: "-", Modifier.weight(1f))
+                    TestResultChip(stringResource(R.string.common_merchant), testResult.merchant ?: "-", Modifier.weight(1f))
                 }
             } else if (testResult != null && !testResult.matched) {
                 Spacer(Modifier.height(SakuDp.spaceXs))
-                Text("No match", style = type.labelMd, color = palette.slate)
+                Text(stringResource(R.string.configure_no_match), style = type.labelMd, color = palette.slate)
             }
         }
     }
@@ -504,7 +506,7 @@ private fun ConfiguredAppRow(
                 Text(packageName, style = type.bodySm, color = palette.slate)
             }
             IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(SakuIcons.Delete, contentDescription = "Delete", tint = palette.slate)
+                Icon(SakuIcons.Delete, contentDescription = stringResource(R.string.common_delete), tint = palette.slate)
             }
         }
     }
@@ -512,16 +514,16 @@ private fun ConfiguredAppRow(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete $appName?") },
-            text = { Text("This will remove all parser keywords for this app.") },
+            title = { Text(stringResource(R.string.configure_delete_app_title, appName)) },
+            text = { Text(stringResource(R.string.configure_delete_app_body)) },
             confirmButton = {
                 TextButton(onClick = { onDelete(); showDeleteConfirm = false }) {
-                    Text("Delete", color = SakuTheme.palette.crimson)
+                    Text(stringResource(R.string.common_delete), color = SakuTheme.palette.crimson)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
