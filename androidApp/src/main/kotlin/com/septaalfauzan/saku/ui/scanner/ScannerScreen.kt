@@ -127,11 +127,11 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                     }
             }
         }
-    ) {
+    ) { innerPadding ->
         Box(
             Modifier
                 .fillMaxSize()
-                .padding(top = 48.dp)
+                .padding(innerPadding)
                 .background(Color.Black)
         ) {
             when (state.phase) {
@@ -178,7 +178,8 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                 .padding(SakuDp.spaceMd),
                             verticalArrangement = Arrangement.spacedBy(SakuDp.spaceXs),
                         ) {
-                            when (scanOcrState) {
+                            val scanOcrResult = scanOcrState
+                            when (scanOcrResult) {
                                 is StateUi.Error -> {
                                     LabelCaps((scanOcrState as StateUi.Error).message, color = palette.crimson)
 
@@ -190,22 +191,14 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                 }
 
                                 is StateUi.Success<Receipt> -> {
+                                    val data = scanOcrResult.data
                                     LabelCaps("Detected", color = palette.crimson)
-                                    SampleField(
-                                        "Merchant",
-                                        (scanOcrState as StateUi.Success<Receipt>).data.merchantName
-                                    )
-                                    SampleField(
-                                        "Date",
-                                        (scanOcrState as StateUi.Success<Receipt>).data.transactionDate
-                                    )
-                                    SampleField(
-                                        "Provider",
-                                        (scanOcrState as StateUi.Success<Receipt>).data.paymentMethod
-                                    )
+                                    SampleField("Merchant", data.merchantName)
+                                    SampleField("Date", data.transactionDate)
+                                    SampleField("Provider", data.paymentMethod)
                                     SampleField(
                                         "Items: ",
-                                        (scanOcrState as StateUi.Success<Receipt>).data.items.map {
+                                        data.items.map {
                                             "${it.quantity}x ${it.name} (${
                                                 formatRupiah(
                                                     it.totalPrice
@@ -213,15 +206,8 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                             })"
                                         }.joinToString(", "),
                                     )
-                                    SampleField(
-                                        "Discount",
-                                        formatRupiah((scanOcrState as StateUi.Success<Receipt>).data.discount)
-                                    )
-                                    SampleField(
-                                        "Total",
-                                        formatRupiah((scanOcrState as StateUi.Success<Receipt>).data.total),
-                                        fontSize = 20.sp
-                                    )
+                                    SampleField("Discount", formatRupiah(data.discount))
+                                    SampleField("Total", formatRupiah(data.total), fontSize = 20.sp)
                                 }
                             }
 
