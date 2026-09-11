@@ -3,7 +3,11 @@ package com.septaalfauzan.saku.ui.scanner
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import androidx.exifinterface.media.ExifInterface
+import java.io.IOException
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -158,7 +162,7 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                         Text("Scan Review", style = type.headlineSm, color = Color.White)
                         state.capturedPath?.let { path ->
                             val bitmap =
-                                remember(path) { BitmapFactory.decodeFile(path)?.asImageBitmap() }
+                                remember(path) { decodeWithExifRotation(path)?.asImageBitmap() }
                             if (bitmap != null) {
                                 Image(
                                     bitmap = bitmap,
@@ -334,6 +338,31 @@ private fun PermissionPrompt(onGrant: () -> Unit) {
 
 private fun newReceiptFile(context: Context): File =
     File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+
+private fun decodeWithExifRotation(path: String): Bitmap? {
+    val original = BitmapFactory.decodeFile(path) ?: return null
+    val orientation = try {
+        ExifInterface(path).getAttributeInt(
+            ExifInterface.TAG_ORIENTATION,
+            ExifInterface.ORIENTATION_NORMAL,
+        )
+    } catch (e: IOException) {
+        ExifInterface.ORIENTATION_NORMAL
+    }
+    val degrees = when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90, ExifInterface.ORIENTATION_TRANSPOSE -> 90f
+        ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+        ExifInterface.ORIENTATION_ROTATE_270, ExifInterface.ORIENTATION_TRANSVERSE -> 270f
+        else -> 0f
+    }
+    if (degrees == 0f) return original
+    val matrix = Matrix().apply { postRotate(degrees) }
+    val rotated = Bitmap.createBitmap(
+        original, 0, 0, original.width, original.height, matrix, true,
+    )
+    if (rotated != original) original.recycle()
+    return rotated
+}
 
 private fun ScannerFlash.toCameraXFlash(): Int = when (this) {
     ScannerFlash.AUTO -> ImageCapture.FLASH_MODE_AUTO
