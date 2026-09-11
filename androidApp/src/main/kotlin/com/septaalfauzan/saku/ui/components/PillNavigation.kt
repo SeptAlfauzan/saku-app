@@ -1,5 +1,6 @@
 package com.septaalfauzan.saku.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,7 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
@@ -29,12 +32,12 @@ import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 enum class PillDestination(
     val route: String,
     val icon: ImageVector,
-    val label: String,
+    @StringRes val labelRes: Int,
 ) {
-    Dashboard("dashboard", SakuIcons.Dashboard, "Dashboard"),
-    Transactions("transactions", SakuIcons.Wallet, "Transactions"),
-    ScanAdd("scan-add", SakuIcons.Scanner, "Scan"),
-    Rules("rules", SakuIcons.Rules, "Rules"),
+    Dashboard("dashboard", SakuIcons.Dashboard, R.string.nav_dashboard),
+    Transactions("transactions", SakuIcons.Wallet, R.string.nav_transactions),
+    ScanAdd("scan-add", SakuIcons.Scanner, R.string.nav_scan),
+    Rules("rules", SakuIcons.Rules, R.string.nav_rules),
 }
 
 @Composable
@@ -68,7 +71,7 @@ fun PillNavigation(
                         .clickable { onScanAdd() },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(SakuIcons.Add, contentDescription = "Add", tint = Color.White, modifier = Modifier.size(22.dp))
+                    Icon(SakuIcons.Add, contentDescription = stringResource(R.string.common_add), tint = Color.White, modifier = Modifier.size(22.dp))
                 }
             } else {
                 Box(
@@ -84,7 +87,7 @@ fun PillNavigation(
                     ) {
                         Icon(
                             dest.icon,
-                            contentDescription = dest.label,
+                            contentDescription = stringResource(dest.labelRes),
                             tint = if (currentRoute == dest.route) palette.ink else palette.slate,
                             modifier = Modifier.size(24.dp),
                         )
