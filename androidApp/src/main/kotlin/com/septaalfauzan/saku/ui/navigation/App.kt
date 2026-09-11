@@ -32,6 +32,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.res.stringResource
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.domain.model.Receipt
 import com.septaalfauzan.saku.ui.addedit.AddEditRoute
 import com.septaalfauzan.saku.ui.addedit.ScanPrefill
@@ -128,7 +130,7 @@ fun App() {
                     ) {
                         Icon(
                             SakuIcons.Add,
-                            contentDescription = "Add",
+                            contentDescription = stringResource(R.string.common_add),
                             modifier = Modifier.size(22.dp)
                         )
 

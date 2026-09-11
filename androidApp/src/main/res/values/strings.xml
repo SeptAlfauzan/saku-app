@@ -35,6 +35,7 @@
     <!-- Balance card -->
     <string name="balance.net_balance">Saldo Bersih • %1$s</string>
     <string name="balance.daily_burn_rate">Burn Rate Harian</string>
+    <string name="transaction_row.auto">Otomatis</string>
 
     <!-- Navigation -->
     <string name="nav.dashboard">Beranda</string>

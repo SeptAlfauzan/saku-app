@@ -15,7 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
@@ -34,7 +36,7 @@ fun TransactionRow(
     val palette = SakuTheme.palette
     val type = SakuTheme.type
     val isIncome = transaction.isIncome
-    val title = transaction.merchant ?: transaction.description ?: "Transaction"
+    val title = transaction.merchant ?: transaction.description ?: stringResource(R.string.detail_fallback_title)
     val account = transaction.sourcePackage?.takeLast(12)?.uppercase() ?: transaction.source.name.uppercase()
     val date = formatShortDate(transaction.occurredAt.toEpochMilliseconds())
 
@@ -80,7 +82,7 @@ fun TransactionRow(
                 color = palette.ink,
             )
             if (transaction.source.name != "MANUAL") {
-                Text("Auto", style = type.bodySm, color = palette.slate)
+                Text(stringResource(R.string.transaction_row_auto), style = type.bodySm, color = palette.slate)
             }
         }
     }

@@ -35,6 +35,8 @@ import com.septaalfauzan.saku.ui.components.LabelCaps
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
 import com.septaalfauzan.saku.ui.components.TransactionRow
+import androidx.compose.ui.res.stringResource
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
@@ -95,14 +97,14 @@ fun DashboardRoute(
                             .size(8.dp)
                             .background(palette.crimson, CircleShape))
                         Text(
-                            "  Smart Listener ${if (isNotificationListenerState) "Active" else "Disabled"}",
+                            "  " + stringResource(if (isNotificationListenerState) R.string.dashboard_smart_listener_active else R.string.dashboard_smart_listener_disabled),
                             style = type.labelCaps,
                             color = palette.crimson,
                             modifier = Modifier.padding(start = 4.dp),
                         )
                     }
                     Text(
-                        if (isNotificationListenerState) "Transaksi dari GoPay, OVO, DANA, dan BCA otomatis dicatat." else "Pengaturan Automatic Tracking anda mati, silahkan nyalakan terlebih dahulu",
+                        if (isNotificationListenerState) stringResource(R.string.dashboard_listener_body_active) else stringResource(R.string.dashboard_listener_body_disabled),
                         style = type.bodySm,
                         color = palette.slate,
                         modifier = Modifier.padding(top = 4.dp),
@@ -123,8 +125,8 @@ fun DashboardRoute(
 
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                LabelCaps("Review", color = palette.slate)
-                Text("Pending items", style = type.bodySm, color = palette.slate)
+                LabelCaps(stringResource(R.string.dashboard_review), color = palette.slate)
+                Text(stringResource(R.string.dashboard_pending_items), style = type.bodySm, color = palette.slate)
             }
             Spacer(Modifier.height(SakuDp.spaceXs))
             Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
@@ -138,12 +140,12 @@ fun DashboardRoute(
                 ) {
 
                     PillButton(
-                        "Review Queue", onOpenReview,
+                        stringResource(R.string.dashboard_review_queue), onOpenReview,
                         variant = PillButtonVariant.GHOST
                     )
                 }
                 PillButton(
-                    "Tracking",
+                    stringResource(R.string.dashboard_tracking),
                     icon = Icons.Default.Apps,
                     onClick =
                         onOpenTracking,
@@ -155,9 +157,9 @@ fun DashboardRoute(
 
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Recent Activity", style = type.headlineSm, color = palette.ink)
+                Text(stringResource(R.string.dashboard_recent_activity), style = type.headlineSm, color = palette.ink)
                 Text(
-                    "View All",
+                    stringResource(R.string.dashboard_view_all),
                     style = type.labelMd,
                     color = palette.crimson,
                     modifier = Modifier.clickable { onOpenAll() },
@@ -169,9 +171,9 @@ fun DashboardRoute(
         if (state.recentTransactions.isEmpty()) {
             item {
                 EmptyState(
-                    title = "No transactions yet",
-                    body = "Record your first income or expense.",
-                    ctaLabel = "Add Transaction",
+                    title = stringResource(R.string.dashboard_no_transactions),
+                    body = stringResource(R.string.dashboard_no_transactions_body),
+                    ctaLabel = stringResource(R.string.dashboard_add_transaction),
                     onCta = onAdd,
                 )
             }
