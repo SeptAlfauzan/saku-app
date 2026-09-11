@@ -3,7 +3,6 @@ package com.septaalfauzan.saku.ui.scanner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.codec.binary.Base64
-import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.Receipt
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.model.defaultExpenseId

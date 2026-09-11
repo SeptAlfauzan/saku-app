@@ -189,7 +189,11 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
 
                                 }
 
-                                StateUi.Idle, StateUi.Loading -> Row {
+                                StateUi.Idle, StateUi.Loading -> Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
                                     Text("Processing Receipt")
                                     CircularProgressIndicator()
                                 }

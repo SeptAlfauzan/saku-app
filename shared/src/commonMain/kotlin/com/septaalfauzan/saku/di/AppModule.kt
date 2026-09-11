@@ -112,8 +112,9 @@ val appModule = module {
     viewModel { params ->
         AddEditTransactionViewModel(
             get(), get(), get(), get(),
-            params.values.getOrNull(0) as? String,
-            params.values.getOrNull(1) as? String,
+            // Koin 4.2.1 lacks typed getOrNull(Int); positional values list access
+            params.values.getOrNull(0) as? String,  // transactionId
+            params.values.getOrNull(1) as? String,   // prefillJson
         )
     }
 }
