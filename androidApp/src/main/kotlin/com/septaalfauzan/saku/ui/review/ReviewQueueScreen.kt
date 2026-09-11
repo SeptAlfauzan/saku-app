@@ -20,6 +20,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.ui.components.EmptyState
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
@@ -39,15 +41,15 @@ fun ReviewQueueRoute(onEdit: (String) -> Unit, onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(SakuIcons.Back, contentDescription = "Back", tint = palette.ink)
+                Icon(SakuIcons.Back, contentDescription = stringResource(R.string.common_back), tint = palette.ink)
             }
-            Text("Pending Review", style = type.headlineLg, color = palette.ink)
+            Text(stringResource(R.string.review_title), style = type.headlineLg, color = palette.ink)
         }
 
         if (state.pending.isEmpty()) {
             EmptyState(
-                title = "Nothing to review",
-                body = "Captured transactions above 80% confidence are confirmed automatically. Low-confidence ones appear here.",
+                title = stringResource(R.string.review_empty),
+                body = stringResource(R.string.review_empty_body),
             )
         } else {
             LazyColumn(
@@ -57,10 +59,10 @@ fun ReviewQueueRoute(onEdit: (String) -> Unit, onBack: () -> Unit) {
                     Column {
                         TransactionRow(tx)
                         Row(Modifier.padding(start = SakuDp.spaceXs, top = SakuDp.spaceXs), horizontalArrangement = Arrangement.spacedBy(space = SakuDp.spaceSm)) {
-                            PillButton("Confirm",
+                            PillButton(stringResource(R.string.review_confirm),
                                 icon = Icons.Default.CheckCircle,
                                 onClick = { viewModel.confirm(tx.id) }, modifier = Modifier.weight(2f), variant = PillButtonVariant.ACCENT)
-                            PillButton("Edit",
+                            PillButton(stringResource(R.string.common_edit),
                                 icon = Icons.Default.Edit,
                                 onClick = { onEdit(tx.id) }, modifier = Modifier.weight(2f), variant = PillButtonVariant.GHOST)
                             PillButton(null,
