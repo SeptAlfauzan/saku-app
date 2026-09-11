@@ -23,6 +23,8 @@ class RoomNotificationSettingsRepository(
     private val keywordDao: ParserKeywordDao,
 ) : NotificationSettingsRepository {
 
+    var onConfigChanged: (suspend () -> Unit)? = null
+
     private var seeded = false
 
     private suspend fun ensureSeeded() {
@@ -50,6 +52,7 @@ class RoomNotificationSettingsRepository(
     override suspend fun setSourceEnabled(packageName: String, enabled: Boolean) {
         ensureSeeded()
         sourceDao.setEnabled(packageName, enabled)
+        onConfigChanged?.invoke()
     }
 
     override fun observeTrackingEnabled(): Flow<Boolean> =
@@ -93,15 +96,18 @@ class RoomNotificationSettingsRepository(
             incomeWords = incomeWords,
             merchantWords = merchantWords,
         )
+        onConfigChanged?.invoke()
     }
 
     override suspend fun deleteSource(packageName: String) {
         keywordDao.deleteByPackage(packageName)
         sourceDao.deleteByPackage(packageName)
+        onConfigChanged?.invoke()
     }
 
     override suspend fun addSource(source: NotificationSource, keywords: List<ParserKeyword>) {
         sourceDao.insertAll(listOf(source.toEntity()))
         keywordDao.insertAll(keywords.map { it.toEntity() })
+        onConfigChanged?.invoke()
     }
 }

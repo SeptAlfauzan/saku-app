@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,7 +40,7 @@ import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun TrackingRoute(onBack: (() -> Unit)?) {
+fun TrackingRoute(onBack: (() -> Unit)?, onConfigureParser: (() -> Unit)? = null) {
     val viewModel: TrackingViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
     val palette = SakuTheme.palette
@@ -46,8 +49,10 @@ fun TrackingRoute(onBack: (() -> Unit)?) {
     val accessGranted by produceState(initialValue = false) {
         value = withContext(Dispatchers.Default) { NotificationAccessManager.isListening(context) }
     }
+    val scrollState = rememberScrollState()
 
-    Column(Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding)) {
+
+    Column(Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding).verticalScroll(scrollState)) {
         Spacer(Modifier.height(SakuDp.spaceSm))
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
@@ -94,7 +99,18 @@ fun TrackingRoute(onBack: (() -> Unit)?) {
         RuleRow("Auto-confirm high confidence", state.autoConfirm, viewModel::toggleAutoConfirm)
 
         Spacer(Modifier.height(SakuDp.spaceMd))
-        LabelCaps("Monitored Apps", color = palette.slate)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            LabelCaps("Monitored Apps", color = palette.slate)
+            if (onConfigureParser != null) {
+                TextButton(onClick = onConfigureParser) {
+                    Text("Configure", style = type.labelMd, color = palette.crimson)
+                }
+            }
+        }
         Spacer(Modifier.height(SakuDp.spaceXs))
         if (state.sources.isEmpty()) {
             EmptyState(title = "No apps", body = "Enable a financial app to track.")

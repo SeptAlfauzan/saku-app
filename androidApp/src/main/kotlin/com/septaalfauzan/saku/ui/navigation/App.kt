@@ -40,6 +40,7 @@ import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import com.septaalfauzan.saku.ui.detail.DetailRoute
 import com.septaalfauzan.saku.ui.review.ReviewQueueRoute
 import com.septaalfauzan.saku.ui.scanner.ScannerScreen
+import com.septaalfauzan.saku.ui.configure.ConfigureParserRoute
 import com.septaalfauzan.saku.ui.tracking.TrackingRoute
 import com.septaalfauzan.saku.ui.transactions.TransactionListRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -55,6 +56,7 @@ object Routes {
     const val TRACKING = "tracking"
     const val RULES = "rules"
     const val SCANNER = "scanner"
+    const val CONFIGURE_PARSER = "configure-parser"
     fun edit(id: String) = "edit/$id"
     fun detail(id: String) = "detail/$id"
 }
@@ -181,7 +183,13 @@ fun App() {
                         )
                     }
                     composable(Routes.TRACKING) {
-                        TrackingRoute(onBack = { navController.popBackStack() })
+                        TrackingRoute(
+                            onBack = { navController.popBackStack() },
+                            onConfigureParser = { navController.navigate(Routes.CONFIGURE_PARSER) },
+                        )
+                    }
+                    composable(Routes.CONFIGURE_PARSER) {
+                        ConfigureParserRoute(onBack = { navController.popBackStack() })
                     }
                     composable(Routes.RULES) {
                         TrackingRoute(onBack = null)

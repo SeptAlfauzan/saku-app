@@ -31,11 +31,12 @@ class ProcessNotificationUseCaseTest {
         overrideSourceEnabled: Boolean = true,
         overrideTracking: Boolean = true,
         overrideAutoConfirm: Boolean = true,
+        initialKeywords: Map<String, List<ParserKeyword>> = emptyMap(),
     ) : NotificationSettingsRepository {
         private val sources = MutableStateFlow(listOf(NotificationSource("com.bca", "bca", overrideSourceEnabled)))
         private val tracking = MutableStateFlow(overrideTracking)
         private val autoConfirm = MutableStateFlow(overrideAutoConfirm)
-        private val keywords = MutableStateFlow<Map<String, List<ParserKeyword>>>(emptyMap())
+        private val keywords = MutableStateFlow<Map<String, List<ParserKeyword>>>(initialKeywords)
         override fun observeSources(): Flow<List<NotificationSource>> = sources
         override suspend fun setSourceEnabled(packageName: String, enabled: Boolean) { sources.value = sources.value.map { if (it.packageName == packageName) it.copy(enabled = enabled) else it } }
         override fun observeTrackingEnabled(): Flow<Boolean> = tracking
@@ -86,6 +87,34 @@ class ProcessNotificationUseCaseTest {
             }
     }
 
+    private val bcaKeywords = listOf(
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "pembayaran"),
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "pembelian"),
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "debit"),
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "transaksi kartu"),
+        ParserKeyword("com.bca", KeywordType.EXPENSE, "pengeluaran"),
+        ParserKeyword("com.bca", KeywordType.INCOME, "transfer masuk"),
+        ParserKeyword("com.bca", KeywordType.INCOME, "dana masuk"),
+        ParserKeyword("com.bca", KeywordType.INCOME, "diterima"),
+        ParserKeyword("com.bca", KeywordType.INCOME, "pemasukan"),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "berhasil di "),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "di "),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "ke "),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "dari "),
+        ParserKeyword("com.bca", KeywordType.MERCHANT, "merchant "),
+    )
+
+    private fun bcaSettings(
+        overrideSourceEnabled: Boolean = true,
+        overrideTracking: Boolean = true,
+        overrideAutoConfirm: Boolean = true,
+    ) = FakeSettingsRepository(
+        overrideSourceEnabled = overrideSourceEnabled,
+        overrideTracking = overrideTracking,
+        overrideAutoConfirm = overrideAutoConfirm,
+        initialKeywords = mapOf("com.bca" to bcaKeywords),
+    )
+
     private fun bcaNotification(body: String) = NotificationData(
         packageName = "com.bca",
         title = "BCA Mobile",
@@ -98,37 +127,21 @@ class ProcessNotificationUseCaseTest {
         val registry = ParserRegistry()
         registry.rebuild(
             listOf(NotificationSource("com.bca", "bca", enabled = true)),
-            mapOf(
-                "com.bca" to listOf(
-                    ParserKeyword("com.bca", KeywordType.EXPENSE, "pembayaran"),
-                    ParserKeyword("com.bca", KeywordType.EXPENSE, "pembelian"),
-                    ParserKeyword("com.bca", KeywordType.EXPENSE, "debit"),
-                    ParserKeyword("com.bca", KeywordType.EXPENSE, "transaksi kartu"),
-                    ParserKeyword("com.bca", KeywordType.EXPENSE, "pengeluaran"),
-                    ParserKeyword("com.bca", KeywordType.INCOME, "transfer masuk"),
-                    ParserKeyword("com.bca", KeywordType.INCOME, "dana masuk"),
-                    ParserKeyword("com.bca", KeywordType.INCOME, "diterima"),
-                    ParserKeyword("com.bca", KeywordType.INCOME, "pemasukan"),
-                    ParserKeyword("com.bca", KeywordType.MERCHANT, "berhasil di "),
-                    ParserKeyword("com.bca", KeywordType.MERCHANT, "di "),
-                    ParserKeyword("com.bca", KeywordType.MERCHANT, "ke "),
-                    ParserKeyword("com.bca", KeywordType.MERCHANT, "dari "),
-                    ParserKeyword("com.bca", KeywordType.MERCHANT, "merchant "),
-                ),
-            ),
+            mapOf("com.bca" to bcaKeywords),
         )
         return ProcessNotificationUseCase(
             engine = NotificationParserEngine(registry),
             settings = settings,
             repository = repo,
             duplicateDetector = DuplicateDetector(repo),
+            parserRegistry = registry,
         )
     }
 
     @Test
     fun highConfidenceExpenseIsInsertedConfirmedWithAutoConfirm() = runTest {
         val repo = FakeTransactionRepository()
-        useCase(repo, FakeSettingsRepository()).invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
+        useCase(repo, bcaSettings()).invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
         val tx = repo.inserted.single()
         assertEquals(TransactionSource.NOTIFICATION, tx.source)
         assertEquals("com.bca", tx.sourcePackage)
@@ -143,7 +156,7 @@ class ProcessNotificationUseCaseTest {
     @Test
     fun lowConfidenceIncomeIsInsertedPendingReview() = runTest {
         val repo = FakeTransactionRepository()
-        useCase(repo, FakeSettingsRepository()).invoke(bcaNotification("Transfer masuk Rp2.000.000 dari SEPTA ALFAUZAN"))
+        useCase(repo, bcaSettings()).invoke(bcaNotification("Transfer masuk Rp2.000.000 dari SEPTA ALFAUZAN"))
         val tx = repo.inserted.single()
         assertEquals(TransactionStatus.PENDING_REVIEW, tx.status)
         assertEquals(TransactionType.INCOME, tx.type)
@@ -153,7 +166,7 @@ class ProcessNotificationUseCaseTest {
     @Test
     fun autoConfirmOffKeepsEvenHighConfidenceAsPending() = runTest {
         val repo = FakeTransactionRepository()
-        useCase(repo, FakeSettingsRepository(overrideAutoConfirm = false)).invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
+        useCase(repo, bcaSettings(overrideAutoConfirm = false)).invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
         assertEquals(TransactionStatus.PENDING_REVIEW, repo.inserted.single().status)
     }
 
@@ -174,7 +187,7 @@ class ProcessNotificationUseCaseTest {
     @Test
     fun nonTransactionNotificationIsDropped() = runTest {
         val repo = FakeTransactionRepository()
-        useCase(repo, FakeSettingsRepository()).invoke(bcaNotification("Nikmati promo cashback 50%"))
+        useCase(repo, bcaSettings()).invoke(bcaNotification("Nikmati promo cashback 50%"))
         assertTrue(repo.inserted.isEmpty())
     }
 
@@ -191,7 +204,7 @@ class ProcessNotificationUseCaseTest {
                 updatedAt = Instant.fromEpochMilliseconds(1_720_000_000_000),
             ),
         ))
-        useCase(repo, FakeSettingsRepository()).invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
+        useCase(repo, bcaSettings()).invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
         assertTrue(repo.inserted.isEmpty())
     }
 }

@@ -71,8 +71,11 @@ class BcaAndGenericParserTest {
     }
 
     @Test
-    fun bcaDoesNotParseOtherPackages() {
-        assertNull(bcaRegistry.parse(notification("com.ovo.id", "Pembayaran Rp50.000 di WARUNG")))
+    fun bcaRegistryDoesNotHaveConfigurableParserForOtherPackages() {
+        // The registry has no ConfigurableParser for com.ovo.id, so it falls through to the generic fallback
+        val parsed = bcaRegistry.parse(notification("com.ovo.id", "Pembayaran Rp50.000 di WARUNG"))
+        assertNotNull(parsed) // generic fallback extracts the amount
+        assertEquals(50_000L, parsed.amount)
     }
 
     @Test

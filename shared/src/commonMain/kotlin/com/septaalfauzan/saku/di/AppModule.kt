@@ -1,5 +1,6 @@
 package com.septaalfauzan.saku.di
 
+import kotlinx.coroutines.flow.first
 import com.septaalfauzan.saku.data.dao.CategoryDao
 import com.septaalfauzan.saku.data.dao.NotificationSourceDao
 import com.septaalfauzan.saku.data.dao.ParserKeywordDao
@@ -53,7 +54,16 @@ val appModule = module {
     single { get<AppDatabase>().settingsDao() }
     single { get<AppDatabase>().keywordDao() }
     single<TransactionRepository> { RoomTransactionRepository(get(), get()) }
-    single<NotificationSettingsRepository> { RoomNotificationSettingsRepository(get(), get(), get()) }
+    single<NotificationSettingsRepository> {
+        val registry = get<ParserRegistry>()
+        RoomNotificationSettingsRepository(get(), get(), get()).apply {
+            onConfigChanged = {
+                val sources = observeSources().first()
+                val allKeywords = sources.associate { it.packageName to getKeywords(it.packageName) }
+                registry.rebuild(sources, allKeywords)
+            }
+        }
+    }
 
     singleOf(::ObserveTransactions)
     singleOf(::ObserveCategories)
@@ -77,7 +87,7 @@ val appModule = module {
     single { ParserRegistry() }
     single { NotificationParserEngine(get()) }
     single { DuplicateDetector(get()) }
-    single { ProcessNotificationUseCase(get(), get(), get(), get()) }
+    single { ProcessNotificationUseCase(get(), get(), get(), get(), get()) }
 
     viewModelOf(::DashboardViewModel)
     viewModelOf(::TransactionListViewModel)

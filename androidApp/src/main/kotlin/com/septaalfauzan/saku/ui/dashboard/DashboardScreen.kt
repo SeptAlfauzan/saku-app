@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -55,7 +57,9 @@ fun DashboardRoute(
     val isNotificationListenerState by viewModel.notificationListenerState.collectAsState()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = SakuDp.screenEdgePadding),
         contentPadding = PaddingValues(
             top = SakuDp.spaceLg,
             bottom = SakuDp.bottomSafeClearance,
@@ -71,23 +75,34 @@ fun DashboardRoute(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    Modifier.size(40.dp).background(palette.chalk, CircleShape),
+                    Modifier
+                        .size(40.dp)
+                        .background(palette.chalk, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon( if(isNotificationListenerState) SakuIcons.Listener else SakuIcons.ListenerDisabled, contentDescription = null, tint = palette.crimson, modifier = Modifier.size(20.dp))
+                    Icon(
+                        if (isNotificationListenerState) SakuIcons.Listener else SakuIcons.ListenerDisabled,
+                        contentDescription = null,
+                        tint = palette.crimson,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
-                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                Column(Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(8.dp).background(palette.crimson, CircleShape))
+                        Box(Modifier
+                            .size(8.dp)
+                            .background(palette.crimson, CircleShape))
                         Text(
-                            "  Smart Listener ${if(isNotificationListenerState) "Active" else "Disabled"}",
+                            "  Smart Listener ${if (isNotificationListenerState) "Active" else "Disabled"}",
                             style = type.labelCaps,
                             color = palette.crimson,
                             modifier = Modifier.padding(start = 4.dp),
                         )
                     }
                     Text(
-                        if(isNotificationListenerState) "Transaksi dari GoPay, OVO, DANA, dan BCA otomatis dicatat." else "Pengaturan Automatic Tracking anda mati, silahkan nyalakan terlebih dahulu",
+                        if (isNotificationListenerState) "Transaksi dari GoPay, OVO, DANA, dan BCA otomatis dicatat." else "Pengaturan Automatic Tracking anda mati, silahkan nyalakan terlebih dahulu",
                         style = type.bodySm,
                         color = palette.slate,
                         modifier = Modifier.padding(top = 4.dp),
@@ -114,18 +129,27 @@ fun DashboardRoute(
             Spacer(Modifier.height(SakuDp.spaceXs))
             Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
                 BadgedBox(
-                    badge = {if(itemsNeedReview == 0) Spacer(modifier = Modifier) else Badge {
+                    badge = {
+                        if (itemsNeedReview == 0) Spacer(modifier = Modifier) else Badge {
                             Text(itemsNeedReview.toString())
                         }
-            }
-                    ,
+                    },
                     modifier = Modifier.weight(1f),
                 ) {
 
-                PillButton("Review Queue", onOpenReview,
-                    variant = PillButtonVariant.GHOST)
+                    PillButton(
+                        "Review Queue", onOpenReview,
+                        variant = PillButtonVariant.GHOST
+                    )
                 }
-                PillButton("Tracking", onOpenTracking, modifier = Modifier.weight(1f), variant = PillButtonVariant.GHOST)
+                PillButton(
+                    "Tracking",
+                    icon = Icons.Default.Apps,
+                    onClick =
+                        onOpenTracking,
+                    modifier = Modifier.weight(1f),
+                    variant = PillButtonVariant.GHOST
+                )
             }
         }
 

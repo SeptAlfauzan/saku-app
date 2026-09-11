@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material.icons.outlined.Search
 
 object SakuIcons {
     val Dashboard: ImageVector = Icons.Outlined.BarChart
@@ -41,4 +42,5 @@ object SakuIcons {
     val FlashOff: ImageVector = Icons.Outlined.FlashOff
     val Verified: ImageVector = Icons.Outlined.Verified
     val Receipt: ImageVector = Icons.Outlined.Receipt
+    val Search: ImageVector = Icons.Outlined.Search
 }
