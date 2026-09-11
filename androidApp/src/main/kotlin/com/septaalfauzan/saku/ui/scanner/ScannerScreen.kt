@@ -54,6 +54,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.septaalfauzan.saku.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -117,15 +119,15 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(SakuIcons.ChevronLeft, contentDescription = "Back", tint = Color.White)
+                    Icon(SakuIcons.ChevronLeft, contentDescription = stringResource(R.string.common_back), tint = Color.White)
                 }
-                Text("Receipt Scanner", style = type.headlineLg, color = Color.White)
+                Text(stringResource(R.string.scanner_title), style = type.headlineLg, color = Color.White)
                 Spacer(Modifier.weight(1f))
                 if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING)
                     IconButton(onClick = viewModel::toggleFlash) {
                         Icon(
                             if (state.flash == ScannerFlash.OFF) SakuIcons.FlashOff else SakuIcons.FlashOn,
-                            contentDescription = "Flash: ${state.flash}",
+                            contentDescription = stringResource(R.string.scanner_flash_format, state.flash),
                             tint = Color.White,
                         )
                     }
@@ -159,14 +161,14 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(SakuDp.spaceMd),
                     ) {
                         Spacer(Modifier.height(SakuDp.spaceSm))
-                        Text("Scan Review", style = type.headlineSm, color = Color.White)
+                        Text(stringResource(R.string.scanner_review_title), style = type.headlineSm, color = Color.White)
                         state.capturedPath?.let { path ->
                             val bitmap =
                                 remember(path) { decodeWithExifRotation(path)?.asImageBitmap() }
                             if (bitmap != null) {
                                 Image(
                                     bitmap = bitmap,
-                                    contentDescription = "Captured receipt",
+                                    contentDescription = stringResource(R.string.scanner_captured_receipt),
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -194,18 +196,18 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                     horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Text("Processing Receipt")
+                                    Text(stringResource(R.string.scanner_processing))
                                     CircularProgressIndicator()
                                 }
 
                                 is StateUi.Success<Receipt> -> {
                                     val data = scanOcrResult.data
-                                    LabelCaps("Detected", color = palette.crimson)
-                                    SampleField("Merchant", data.merchantName)
-                                    SampleField("Date", data.transactionDate)
-                                    SampleField("Provider", data.paymentMethod)
+                                    LabelCaps(stringResource(R.string.scanner_detected), color = palette.crimson)
+                                    SampleField(stringResource(R.string.common_merchant), data.merchantName)
+                                    SampleField(stringResource(R.string.common_date), data.transactionDate)
+                                    SampleField(stringResource(R.string.scanner_provider), data.paymentMethod)
                                     SampleField(
-                                        "Items: ",
+                                        stringResource(R.string.scanner_items),
                                         data.items.map {
                                             "${it.quantity}x ${it.name} (${
                                                 formatRupiah(
@@ -214,8 +216,8 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                             })"
                                         }.joinToString(", "),
                                     )
-                                    SampleField("Discount", formatRupiah(data.discount))
-                                    SampleField("Total", formatRupiah(data.total), fontSize = 20.sp)
+                                    SampleField(stringResource(R.string.scanner_discount), formatRupiah(data.discount))
+                                    SampleField(stringResource(R.string.scanner_total), formatRupiah(data.total), fontSize = 20.sp)
                                 }
                             }
 
@@ -223,14 +225,14 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
                             PillButton(
-                                "Approve & Log",
+                                stringResource(R.string.scanner_approve_log),
                                 viewModel::approve,
                                 modifier = Modifier.weight(1f),
                                 enabled = !onScanningState,
                                 variant = PillButtonVariant.ACCENT
                             )
                             PillButton(
-                                "Edit",
+                                stringResource(R.string.common_edit),
                                 {
                                     (scanOcrState as? StateUi.Success<Receipt>)?.data?.let(onEdit)
                                 },
@@ -240,7 +242,7 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                             )
                         }
                         PillButton(
-                            "Rescan",
+                            stringResource(R.string.scanner_rescan),
                             viewModel::retake,
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !onScanningState,
@@ -323,16 +325,16 @@ private fun PermissionPrompt(onGrant: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("Camera permission required", style = type.headlineSm, color = Color.White)
+        Text(stringResource(R.string.scanner_camera_permission_title), style = type.headlineSm, color = Color.White)
         Spacer(Modifier.height(SakuDp.spaceSm))
         Text(
-            "Allow camera access to scan receipts.",
+            stringResource(R.string.scanner_camera_permission_body),
             style = type.bodyMd,
             color = Color(0xFF9C9CA4)
         )
         Spacer(Modifier.height(SakuDp.spaceMd))
         PillButton(
-            "Grant Access",
+            stringResource(R.string.scanner_grant_access),
             onGrant,
             modifier = Modifier.fillMaxWidth(0.6f),
             variant = PillButtonVariant.ACCENT
