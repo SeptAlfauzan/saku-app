@@ -29,8 +29,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -48,135 +50,234 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.septaalfauzan.saku.domain.model.Receipt
+import org.koin.androidx.compose.koinViewModel
 import com.septaalfauzan.saku.ui.components.LabelCaps
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
+import com.septaalfauzan.saku.ui.state.StateUi
+import com.septaalfauzan.saku.util.formatRupiah
 import java.io.File
 import java.util.concurrent.Executor
 
 @Composable
-fun ScannerScreen(onBack: () -> Unit) {
+fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
     val context = LocalContext.current
-    val viewModel: ScannerViewModel = viewModel()
+    val viewModel: ScannerViewModel = koinViewModel()
     val state by viewModel.state.collectAsState()
     val palette = SakuTheme.palette
     val type = SakuTheme.type
     var shutterToken by remember { mutableStateOf(0) }
+    val scanOcrState by viewModel.scanOcrState.collectAsState()
+    val event by viewModel.event.collectAsState()
+
+    LaunchedEffect(event) {
+        when (event) {
+            ScannerEvent.Saved -> onBack()
+            null -> Unit
+        }
+        if (event != null) viewModel.consumeEvent()
+    }
 
     var hasPermission by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED,
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED,
         )
     }
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        hasPermission = granted
-    }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            hasPermission = granted
+        }
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
-        when (state.phase) {
-            ScannerPhase.VIEWFINDER, ScannerPhase.SCANNING -> {
-                if (hasPermission) {
-                    CameraView(
-                        flashMode = state.flash,
-                        shutterToken = shutterToken,
-                        onCaptured = viewModel::onCaptured,
-                    )
-                } else {
-                    PermissionPrompt(onGrant = { permissionLauncher.launch(Manifest.permission.CAMERA) })
+    val onScanningState = scanOcrState == StateUi.Idle || scanOcrState == StateUi.Loading
+
+    Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(SakuIcons.ChevronLeft, contentDescription = "Back", tint = Color.White)
                 }
-            }
-            ScannerPhase.RESULT -> {
-                Column(
-                    Modifier.fillMaxSize().padding(SakuDp.screenEdgePadding),
-                    verticalArrangement = Arrangement.spacedBy(SakuDp.spaceMd),
-                ) {
-                    Spacer(Modifier.height(SakuDp.spaceSm))
-                    Text("Scan Review", style = type.headlineSm, color = Color.White)
-                    state.capturedPath?.let { path ->
-                        val bitmap = remember(path) { BitmapFactory.decodeFile(path)?.asImageBitmap() }
-                        if (bitmap != null) {
-                            Image(
-                                bitmap = bitmap,
-                                contentDescription = "Captured receipt",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(20.dp)),
-                            )
-                        }
-                    }
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFF1A1A1F), RoundedCornerShape(20.dp))
-                            .padding(SakuDp.spaceMd),
-                        verticalArrangement = Arrangement.spacedBy(SakuDp.spaceXs),
-                    ) {
-                        LabelCaps("Detected", color = palette.crimson)
-                        SampleField("Merchant", "Kopi Senja")
-                        SampleField("Date", "Today")
-                        SampleField("Total", "-Rp58.000")
-                        SampleField("Provider", "GoPay")
-                        Text(
-                            "Line items: 1x Kopi Oke (Rp38.000), 1x Croissant (Rp20.000)",
-                            style = type.bodySm,
-                            color = Color.White,
+                Text("Receipt Scanner", style = type.headlineLg, color = Color.White)
+                Spacer(Modifier.weight(1f))
+                if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING)
+                    IconButton(onClick = viewModel::toggleFlash) {
+                        Icon(
+                            if (state.flash == ScannerFlash.OFF) SakuIcons.FlashOff else SakuIcons.FlashOn,
+                            contentDescription = "Flash: ${state.flash}",
+                            tint = Color.White,
                         )
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
-                        PillButton("Approve & Log", viewModel::approve, modifier = Modifier.weight(1f), variant = PillButtonVariant.ACCENT)
-                        PillButton("Edit", viewModel::edit, modifier = Modifier.weight(1f), variant = PillButtonVariant.GHOST)
+            }
+        }
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(top = 48.dp)
+                .background(Color.Black)
+        ) {
+            when (state.phase) {
+                ScannerPhase.VIEWFINDER, ScannerPhase.SCANNING -> {
+                    if (hasPermission) {
+                        CameraView(
+                            flashMode = state.flash,
+                            shutterToken = shutterToken,
+                            onCaptured = viewModel::onCaptured,
+                        )
+                    } else {
+                        PermissionPrompt(onGrant = { permissionLauncher.launch(Manifest.permission.CAMERA) })
                     }
-                    PillButton("Rescan", viewModel::retake, modifier = Modifier.fillMaxWidth(), variant = PillButtonVariant.PRIMARY)
+                }
+
+                ScannerPhase.RESULT -> {
+                    Column(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(SakuDp.screenEdgePadding),
+                        verticalArrangement = Arrangement.spacedBy(SakuDp.spaceMd),
+                    ) {
+                        Spacer(Modifier.height(SakuDp.spaceSm))
+                        Text("Scan Review", style = type.headlineSm, color = Color.White)
+                        state.capturedPath?.let { path ->
+                            val bitmap =
+                                remember(path) { BitmapFactory.decodeFile(path)?.asImageBitmap() }
+                            if (bitmap != null) {
+                                Image(
+                                    bitmap = bitmap,
+                                    contentDescription = "Captured receipt",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(220.dp)
+                                        .clip(RoundedCornerShape(20.dp)),
+                                )
+                            }
+                        }
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF1A1A1F), RoundedCornerShape(20.dp))
+                                .padding(SakuDp.spaceMd),
+                            verticalArrangement = Arrangement.spacedBy(SakuDp.spaceXs),
+                        ) {
+                            when (scanOcrState) {
+                                is StateUi.Error -> {
+                                    LabelCaps((scanOcrState as StateUi.Error).message, color = palette.crimson)
+
+                                }
+
+                                StateUi.Idle, StateUi.Loading -> Row {
+                                    Text("Processing Receipt")
+                                    CircularProgressIndicator()
+                                }
+
+                                is StateUi.Success<Receipt> -> {
+                                    LabelCaps("Detected", color = palette.crimson)
+                                    SampleField(
+                                        "Merchant",
+                                        (scanOcrState as StateUi.Success<Receipt>).data.merchantName
+                                    )
+                                    SampleField(
+                                        "Date",
+                                        (scanOcrState as StateUi.Success<Receipt>).data.transactionDate
+                                    )
+                                    SampleField(
+                                        "Provider",
+                                        (scanOcrState as StateUi.Success<Receipt>).data.paymentMethod
+                                    )
+                                    SampleField(
+                                        "Items: ",
+                                        (scanOcrState as StateUi.Success<Receipt>).data.items.map {
+                                            "${it.quantity}x ${it.name} (${
+                                                formatRupiah(
+                                                    it.totalPrice
+                                                )
+                                            })"
+                                        }.joinToString(", "),
+                                    )
+                                    SampleField(
+                                        "Discount",
+                                        formatRupiah((scanOcrState as StateUi.Success<Receipt>).data.discount)
+                                    )
+                                    SampleField(
+                                        "Total",
+                                        formatRupiah((scanOcrState as StateUi.Success<Receipt>).data.total),
+                                        fontSize = 20.sp
+                                    )
+                                }
+                            }
+
+
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
+                            PillButton(
+                                "Approve & Log",
+                                viewModel::approve,
+                                modifier = Modifier.weight(1f),
+                                enabled = !onScanningState,
+                                variant = PillButtonVariant.ACCENT
+                            )
+                            PillButton(
+                                "Edit",
+                                {
+                                    (scanOcrState as? StateUi.Success<Receipt>)?.data?.let(onEdit)
+                                },
+                                enabled = !onScanningState,
+                                modifier = Modifier.weight(1f),
+                                variant = PillButtonVariant.GHOST,
+                            )
+                        }
+                        PillButton(
+                            "Rescan",
+                            viewModel::retake,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !onScanningState,
+                            variant = PillButtonVariant.PRIMARY
+                        )
+                    }
                 }
             }
-        }
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(top = SakuDp.spaceMd, start = SakuDp.spaceSm, end = SakuDp.spaceSm)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(SakuIcons.ChevronLeft, contentDescription = "Back", tint = Color.White)
-            }
-            Text("Receipt Scanner", style = type.labelCaps, color = Color.White)
-            Spacer(Modifier.weight(1f))
-            IconButton(onClick = viewModel::toggleFlash) {
-                Icon(
-                    if (state.flash == ScannerFlash.OFF) SakuIcons.FlashOff else SakuIcons.FlashOn,
-                    contentDescription = "Flash: ${state.flash}",
-                    tint = Color.White,
+
+
+            if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING) {
+                ShutterButton(
+                    scanning = state.phase == ScannerPhase.SCANNING,
+                    onClick = { shutterToken++ },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 48.dp),
                 )
             }
-        }
 
-        if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING) {
-            ShutterButton(
-                scanning = state.phase == ScannerPhase.SCANNING,
-                onClick = { shutterToken++ },
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 48.dp),
-            )
-        }
-
-        state.message?.let { msg ->
-            Box(
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 120.dp)
-                    .background(Color(0xFF1A1A1F), RoundedCornerShape(12.dp))
-                    .padding(16.dp),
-            ) {
-                Text(msg, style = type.bodySm, color = Color.White)
+            state.message?.let { msg ->
+                Box(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 120.dp)
+                        .background(Color(0xFF1A1A1F), RoundedCornerShape(12.dp))
+                        .padding(16.dp),
+                ) {
+                    Text(msg, style = type.bodySm, color = Color.White)
+                }
             }
         }
     }
@@ -196,17 +297,25 @@ private fun ShutterButton(scanning: Boolean, onClick: () -> Unit, modifier: Modi
             Modifier
                 .padding(8.dp)
                 .size(56.dp)
-                .background(if (scanning) palette.crimson.copy(alpha = 0.4f) else palette.crimson, CircleShape),
+                .background(
+                    if (scanning) palette.crimson.copy(alpha = 0.4f) else palette.crimson,
+                    CircleShape
+                ),
         )
     }
 }
 
 @Composable
-private fun SampleField(label: String, value: String) {
+private fun SampleField(label: String, value: String, fontSize: TextUnit = 14.sp) {
     val type = SakuTheme.type
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, style = type.labelMd, color = Color(0xFF9C9CA4))
-        Text(value, style = type.labelMd, color = Color.White)
+        Text(
+            value,
+            style = type.labelMd.copy(fontSize = fontSize),
+            color = Color.White,
+            textAlign = TextAlign.End
+        )
     }
 }
 
@@ -214,15 +323,26 @@ private fun SampleField(label: String, value: String) {
 private fun PermissionPrompt(onGrant: () -> Unit) {
     val type = SakuTheme.type
     Column(
-        Modifier.fillMaxSize().padding(32.dp),
+        Modifier
+            .fillMaxSize()
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Text("Camera permission required", style = type.headlineSm, color = Color.White)
         Spacer(Modifier.height(SakuDp.spaceSm))
-        Text("Allow camera access to scan receipts.", style = type.bodyMd, color = Color(0xFF9C9CA4))
+        Text(
+            "Allow camera access to scan receipts.",
+            style = type.bodyMd,
+            color = Color(0xFF9C9CA4)
+        )
         Spacer(Modifier.height(SakuDp.spaceMd))
-        PillButton("Grant Access", onGrant, modifier = Modifier.fillMaxWidth(0.6f), variant = PillButtonVariant.ACCENT)
+        PillButton(
+            "Grant Access",
+            onGrant,
+            modifier = Modifier.fillMaxWidth(0.6f),
+            variant = PillButtonVariant.ACCENT
+        )
     }
 }
 
@@ -243,7 +363,11 @@ private fun CameraView(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val previewView = remember { PreviewView(context).apply { implementationMode = PreviewView.ImplementationMode.COMPATIBLE } }
+    val previewView = remember {
+        PreviewView(context).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     val executor: Executor = remember { ContextCompat.getMainExecutor(context) }
     val onCapturedRef = rememberUpdatedState(onCaptured)
@@ -261,7 +385,12 @@ private fun CameraView(
                 .build()
             imageCapture = capture
             cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                CameraSelector.DEFAULT_BACK_CAMERA,
+                preview,
+                capture
+            )
         }, executor)
     }
 

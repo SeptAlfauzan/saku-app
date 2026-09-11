@@ -50,8 +50,14 @@ import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
-    val viewModel: AddEditTransactionViewModel = koinViewModel(parameters = { parametersOf(transactionId) })
+fun AddEditRoute(
+    transactionId: String? = null,
+    prefillJson: String? = null,
+    onDone: () -> Unit,
+) {
+    val viewModel: AddEditTransactionViewModel = koinViewModel(
+        parameters = { parametersOf(transactionId, prefillJson) },
+    )
     val state by viewModel.uiState.collectAsState()
     val event by viewModel.events.collectAsState()
 

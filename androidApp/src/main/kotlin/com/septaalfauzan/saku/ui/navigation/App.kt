@@ -1,5 +1,6 @@
 package com.septaalfauzan.saku.ui.navigation
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
@@ -31,7 +32,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.septaalfauzan.saku.domain.model.Receipt
 import com.septaalfauzan.saku.ui.addedit.AddEditRoute
+import com.septaalfauzan.saku.ui.addedit.ScanPrefill
 import com.septaalfauzan.saku.ui.components.PillDestination
 import com.septaalfauzan.saku.ui.components.PillNavigation
 import com.septaalfauzan.saku.ui.components.QuickActionSheet
@@ -45,11 +48,12 @@ import com.septaalfauzan.saku.ui.tracking.TrackingRoute
 import com.septaalfauzan.saku.ui.transactions.TransactionListRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
+import kotlinx.serialization.json.Json
 
 object Routes {
     const val DASHBOARD = "dashboard"
     const val TRANSACTIONS = "transactions"
-    const val ADD = "add"
+    const val ADD = "add?prefill={prefill}"
     const val EDIT = "edit/{transactionId}"
     const val DETAIL = "detail/{transactionId}"
     const val REVIEW = "review"
@@ -59,6 +63,13 @@ object Routes {
     const val CONFIGURE_PARSER = "configure-parser"
     fun edit(id: String) = "edit/$id"
     fun detail(id: String) = "detail/$id"
+    fun addScan(receipt: Receipt): String {
+        val json = Json.encodeToString(
+            ScanPrefill.serializer(),
+            ScanPrefill.fromReceipt(receipt),
+        )
+        return "add?prefill=${Uri.encode(json)}"
+    }
 }
 
 
@@ -149,7 +160,20 @@ fun App() {
                             onAdd = { navController.navigate(Routes.ADD) },
                         )
                     }
-                    composable(Routes.ADD) { AddEditRoute(onDone = { navController.popBackStack() }) }
+                    composable(
+                        Routes.ADD,
+                        arguments = listOf(
+                            androidx.navigation.navArgument("prefill") {
+                                type = androidx.navigation.NavType.StringType
+                                defaultValue = ""
+                            },
+                        ),
+                    ) { entry ->
+                        AddEditRoute(
+                            prefillJson = entry.arguments?.getString("prefill"),
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
                     composable(
                         Routes.EDIT,
                         arguments = listOf(androidx.navigation.navArgument("transactionId") {
@@ -195,7 +219,10 @@ fun App() {
                         TrackingRoute(onBack = null)
                     }
                     composable(Routes.SCANNER) {
-                        ScannerScreen(onBack = { navController.popBackStack() })
+                        ScannerScreen(
+                            onBack = { navController.popBackStack() },
+                            onEdit = { receipt -> navController.navigate(Routes.addScan(receipt)) },
+                        )
                     }
                 }
 

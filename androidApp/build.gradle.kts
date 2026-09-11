@@ -12,6 +12,7 @@ kotlin {
 }
 dependencies {
     implementation(project(":shared"))
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(platform(libs.koin.bom))
     implementation(libs.androidx.activity.compose)
@@ -19,6 +20,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtimeCompose)
 
     implementation(libs.compose.uiToolingPreview)
+    implementation(libs.firebase.crashlytics.buildtools)
     debugImplementation(libs.compose.uiTooling)
 
     implementation(libs.androidx.navigationCompose)
