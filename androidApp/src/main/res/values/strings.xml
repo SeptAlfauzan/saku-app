@@ -1,3 +1,135 @@
 <resources>
     <string name="app_name">Saku</string>
+
+    <!-- Common -->
+    <string name="common.cancel">Batal</string>
+    <string name="common.delete">Hapus</string>
+    <string name="common.remove">Hapus</string>
+    <string name="common.edit">Edit</string>
+    <string name="common.back">Kembali</string>
+    <string name="common.add">Tambah</string>
+    <string name="common.ok">OK</string>
+    <string name="common.income">Pemasukan</string>
+    <string name="common.expense">Pengeluaran</string>
+    <string name="common.date">Tanggal</string>
+    <string name="common.amount">Jumlah</string>
+    <string name="common.merchant">Merchant</string>
+    <string name="common.source">Sumber</string>
+    <string name="common.note">Catatan</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard.smart_listener_active">Smart Listener Aktif</string>
+    <string name="dashboard.smart_listener_disabled">Smart Listener Nonaktif</string>
+    <string name="dashboard.listener_body_active">Transaksi dari GoPay, OVO, DANA, dan BCA otomatis dicatat.</string>
+    <string name="dashboard.listener_body_disabled">Pengaturan Pelacakan Otomatis kamu mati. Silakan nyalakan terlebih dahulu.</string>
+    <string name="dashboard.review">Review</string>
+    <string name="dashboard.pending_items">Menunggu Review</string>
+    <string name="dashboard.review_queue">Antrian Review</string>
+    <string name="dashboard.tracking">Pelacakan</string>
+    <string name="dashboard.recent_activity">Aktivitas Terbaru</string>
+    <string name="dashboard.view_all">Lihat Semua</string>
+    <string name="dashboard.no_transactions">Belum ada transaksi</string>
+    <string name="dashboard.no_transactions_body">Catat pemasukan atau pengeluaran pertamamu.</string>
+    <string name="dashboard.add_transaction">Tambah Transaksi</string>
+
+    <!-- Balance card -->
+    <string name="balance.net_balance">Saldo Bersih • %1$s</string>
+    <string name="balance.daily_burn_rate">Burn Rate Harian</string>
+
+    <!-- Navigation -->
+    <string name="nav.dashboard">Beranda</string>
+    <string name="nav.transactions">Transaksi</string>
+    <string name="nav.scan">Pindai</string>
+    <string name="nav.rules">Aturan</string>
+
+    <!-- Transactions list -->
+    <string name="transactions.title">Transaksi</string>
+    <string name="transactions.empty">Tidak ada transaksi</string>
+    <string name="transactions.empty_filtered">Belum ada yang cocok dengan filter ini.</string>
+    <string name="transactions.filter_all">Semua</string>
+
+    <!-- Transaction detail -->
+    <string name="detail.not_found">Transaksi tidak ditemukan</string>
+    <string name="detail.fallback_title">Transaksi</string>
+    <string name="detail.pending_review">Menunggu Review</string>
+    <string name="detail.delete_confirm_title">Hapus transaksi?</string>
+    <string name="detail.delete_confirm_body">Tindakan ini tidak dapat dibatalkan.</string>
+
+    <!-- Add / Edit transaction -->
+    <string name="addedit.add_title">Tambah Transaksi</string>
+    <string name="addedit.edit_title">Edit Transaksi</string>
+    <string name="addedit.category">Kategori</string>
+    <string name="addedit.merchant_hint">Merchant</string>
+    <string name="addedit.note_hint">Catatan</string>
+    <string name="addedit.save">Simpan</string>
+    <string name="addedit.update">Perbarui</string>
+
+    <!-- Scanner -->
+    <string name="scanner.title">Pemindai Struk</string>
+    <string name="scanner.review_title">Tinjauan Scan</string>
+    <string name="scanner.processing">Memproses Struk</string>
+    <string name="scanner.detected">Terdeteksi</string>
+    <string name="scanner.provider">Penyedia</string>
+    <string name="scanner.items">Item: </string>
+    <string name="scanner.discount">Diskon</string>
+    <string name="scanner.total">Total</string>
+    <string name="scanner.approve_log">Setujui &amp; Catat</string>
+    <string name="scanner.rescan">Pindai Ulang</string>
+    <string name="scanner.camera_permission_title">Izin kamera diperlukan</string>
+    <string name="scanner.camera_permission_body">Izinkan akses kamera untuk memindai struk.</string>
+    <string name="scanner.grant_access">Beri Izin</string>
+    <string name="scanner.captured_receipt">Struk yang ditangkap</string>
+    <string name="scanner.flash_format">Flash: %1$s</string>
+
+    <!-- Review queue -->
+    <string name="review.title">Menunggu Review</string>
+    <string name="review.empty">Tidak ada yang perlu direview</string>
+    <string name="review.empty_body">Transaksi dengan keyakinan di atas 80% dikonfirmasi otomatis. Transaksi berkeyakinan rendah muncul di sini.</string>
+    <string name="review.confirm">Konfirmasi</string>
+
+    <!-- Tracking / Rules -->
+    <string name="tracking.automated">Pelacakan Otomatis</string>
+    <string name="tracking.rules">Aturan</string>
+    <string name="tracking.intro">Membaca notifikasi dari aplikasi keuangan terpilih untuk mencatat transaksi secara otomatis. Notifikasi diproses secara lokal bila memungkinkan.</string>
+    <string name="tracking.access_granted">Akses notifikasi diberikan</string>
+    <string name="tracking.access_not_granted">Akses notifikasi belum diberikan</string>
+    <string name="tracking.enable_access">Aktifkan Akses Notifikasi</string>
+    <string name="tracking.auto_confirm">Konfirmasi otomatis keyakinan tinggi</string>
+    <string name="tracking.monitored_apps">Aplikasi yang Dipantau</string>
+    <string name="tracking.configure">Atur</string>
+    <string name="tracking.no_apps">Tidak ada aplikasi</string>
+    <string name="tracking.no_apps_body">Aktifkan aplikasi keuangan untuk dipantau.</string>
+
+    <!-- Configure parser -->
+    <string name="configure.title">Atur Parser</string>
+    <string name="configure.subtitle">Aturan pendengar otomatis</string>
+    <string name="configure.done">Selesai</string>
+    <string name="configure.search_hint">Cari nama aplikasi atau paket…</string>
+    <string name="configure.change">Ganti</string>
+    <string name="configure.expense_keywords">Kata Kunci Pengeluaran</string>
+    <string name="configure.expense_desc">Memicu pembaruan buku besar debit</string>
+    <string name="configure.income_keywords">Kata Kunci Pemasukan</string>
+    <string name="configure.income_desc">Memicu penerimaan kredit masuk</string>
+    <string name="configure.merchant_prefixes">Awalan Ekstraksi Merchant</string>
+    <string name="configure.merchant_desc">Jangkar untuk memisahkan entitas penerima</string>
+    <string name="configure.select_app">Pilih aplikasi</string>
+    <string name="configure.select_app_body">Cari aplikasi keuangan untuk mengatur kata kunci parser-nya.</string>
+    <string name="configure.configured_apps">Aplikasi Terkonfigurasi</string>
+    <string name="configure.no_apps">Belum ada aplikasi terkonfigurasi</string>
+    <string name="configure.no_apps_body">Tambahkan aplikasi keuangan untuk memulai.</string>
+    <string name="configure.rules_count">%1$d aturan</string>
+    <string name="configure.add_keyword_hint">Tambah kata kunci…</string>
+    <string name="configure.add">Tambah</string>
+    <string name="configure.live_simulation">Simulasi Langsung</string>
+    <string name="configure.auto_matched">Otomatis cocok</string>
+    <string name="configure.paste_hint">Tempel teks notifikasi…</string>
+    <string name="configure.type">Tipe</string>
+    <string name="configure.no_match">Tidak cocok</string>
+    <string name="configure.delete_app_title">Hapus %1$s?</string>
+    <string name="configure.delete_app_body">Ini akan menghapus semua kata kunci parser untuk aplikasi ini.</string>
+
+    <!-- Quick action sheet -->
+    <string name="sheet.select_recording_method">Pilih metode pencatatan</string>
+    <string name="sheet.scan_receipt">Pindai Struk</string>
+    <string name="sheet.manual_entry">Input Manual</string>
 </resources>
