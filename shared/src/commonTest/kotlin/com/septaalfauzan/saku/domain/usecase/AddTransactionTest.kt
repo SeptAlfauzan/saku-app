@@ -62,4 +62,19 @@ class AddTransactionTest {
         assertEquals(TransactionSource.SCAN, tx.source)
         assertEquals("receipt_scan", tx.sourcePackage)
     }
+
+    @Test
+    fun scanSourceLeavesSourcePackageNull() {
+        val tx = useCase().invoke(
+            type = TransactionType.EXPENSE,
+            amount = 120_000,
+            merchant = "Alfamart",
+            categoryId = null,
+            description = null,
+            occurredAt = Clock.System.now(),
+            source = TransactionSource.SCAN,
+        )
+        assertEquals(TransactionSource.SCAN, tx.source)
+        assertNull(tx.sourcePackage)
+    }
 }
