@@ -26,6 +26,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import com.septaalfauzan.saku.util.formatRupiah
@@ -57,7 +59,7 @@ fun BalanceCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column {
-                LabelCaps("Net Balance • $monthLabel")
+                LabelCaps(stringResource(R.string.balance_net_balance, monthLabel))
                 Text(
                     formatRupiah(balance),
                     style = type.displayCurrencyMobile.copy(fontFeatureSettings = "tnum"),
@@ -72,7 +74,7 @@ fun BalanceCard(
         ) {
             item {
                 MetricPod(
-                    label = "Income",
+                    label = stringResource(R.string.common_income),
                     text = "+${formatRupiah(income)}",
                     icon = Icons.Outlined.ArrowDownward,
                     modifier = Modifier
@@ -80,7 +82,7 @@ fun BalanceCard(
                         .weight(1f)
                 )
                 MetricPod(
-                    label = "Expense",
+                    label = stringResource(R.string.common_expense),
                     text = "-${formatRupiah(expense)}",
                     icon = Icons.Outlined.ArrowUpward,
                     modifier = Modifier
@@ -92,7 +94,7 @@ fun BalanceCard(
         }
         Column {
             LabelCaps(
-                "Daily Burn Rate",
+                stringResource(R.string.balance_daily_burn_rate),
                 color = palette.slate,
                 modifier = Modifier.padding(horizontal = SakuDp.spaceLg)
             )

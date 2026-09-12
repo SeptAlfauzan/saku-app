@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -33,6 +35,8 @@ import com.septaalfauzan.saku.ui.components.LabelCaps
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
 import com.septaalfauzan.saku.ui.components.TransactionRow
+import androidx.compose.ui.res.stringResource
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
@@ -55,7 +59,9 @@ fun DashboardRoute(
     val isNotificationListenerState by viewModel.notificationListenerState.collectAsState()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = SakuDp.screenEdgePadding),
         contentPadding = PaddingValues(
             top = SakuDp.spaceLg,
             bottom = SakuDp.bottomSafeClearance,
@@ -71,23 +77,34 @@ fun DashboardRoute(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    Modifier.size(40.dp).background(palette.chalk, CircleShape),
+                    Modifier
+                        .size(40.dp)
+                        .background(palette.chalk, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon( if(isNotificationListenerState) SakuIcons.Listener else SakuIcons.ListenerDisabled, contentDescription = null, tint = palette.crimson, modifier = Modifier.size(20.dp))
+                    Icon(
+                        if (isNotificationListenerState) SakuIcons.Listener else SakuIcons.ListenerDisabled,
+                        contentDescription = null,
+                        tint = palette.crimson,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
-                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                Column(Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(8.dp).background(palette.crimson, CircleShape))
+                        Box(Modifier
+                            .size(8.dp)
+                            .background(palette.crimson, CircleShape))
                         Text(
-                            "  Smart Listener ${if(isNotificationListenerState) "Active" else "Disabled"}",
+                            "  " + stringResource(if (isNotificationListenerState) R.string.dashboard_smart_listener_active else R.string.dashboard_smart_listener_disabled),
                             style = type.labelCaps,
                             color = palette.crimson,
                             modifier = Modifier.padding(start = 4.dp),
                         )
                     }
                     Text(
-                        if(isNotificationListenerState) "Transaksi dari GoPay, OVO, DANA, dan BCA otomatis dicatat." else "Pengaturan Automatic Tracking anda mati, silahkan nyalakan terlebih dahulu",
+                        if (isNotificationListenerState) stringResource(R.string.dashboard_listener_body_active) else stringResource(R.string.dashboard_listener_body_disabled),
                         style = type.bodySm,
                         color = palette.slate,
                         modifier = Modifier.padding(top = 4.dp),
@@ -108,32 +125,41 @@ fun DashboardRoute(
 
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                LabelCaps("Review", color = palette.slate)
-                Text("Pending items", style = type.bodySm, color = palette.slate)
+                LabelCaps(stringResource(R.string.dashboard_review), color = palette.slate)
+                Text(stringResource(R.string.dashboard_pending_items), style = type.bodySm, color = palette.slate)
             }
             Spacer(Modifier.height(SakuDp.spaceXs))
             Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
                 BadgedBox(
-                    badge = {if(itemsNeedReview == 0) Spacer(modifier = Modifier) else Badge {
+                    badge = {
+                        if (itemsNeedReview == 0) Spacer(modifier = Modifier) else Badge {
                             Text(itemsNeedReview.toString())
                         }
-            }
-                    ,
+                    },
                     modifier = Modifier.weight(1f),
                 ) {
 
-                PillButton("Review Queue", onOpenReview,
-                    variant = PillButtonVariant.GHOST)
+                    PillButton(
+                        stringResource(R.string.dashboard_review_queue), onOpenReview,
+                        variant = PillButtonVariant.GHOST
+                    )
                 }
-                PillButton("Tracking", onOpenTracking, modifier = Modifier.weight(1f), variant = PillButtonVariant.GHOST)
+                PillButton(
+                    stringResource(R.string.dashboard_tracking),
+                    icon = Icons.Default.Apps,
+                    onClick =
+                        onOpenTracking,
+                    modifier = Modifier.weight(1f),
+                    variant = PillButtonVariant.GHOST
+                )
             }
         }
 
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Recent Activity", style = type.headlineSm, color = palette.ink)
+                Text(stringResource(R.string.dashboard_recent_activity), style = type.headlineSm, color = palette.ink)
                 Text(
-                    "View All",
+                    stringResource(R.string.dashboard_view_all),
                     style = type.labelMd,
                     color = palette.crimson,
                     modifier = Modifier.clickable { onOpenAll() },
@@ -145,9 +171,9 @@ fun DashboardRoute(
         if (state.recentTransactions.isEmpty()) {
             item {
                 EmptyState(
-                    title = "No transactions yet",
-                    body = "Record your first income or expense.",
-                    ctaLabel = "Add Transaction",
+                    title = stringResource(R.string.dashboard_no_transactions),
+                    body = stringResource(R.string.dashboard_no_transactions_body),
+                    ctaLabel = stringResource(R.string.dashboard_add_transaction),
                     onCta = onAdd,
                 )
             }

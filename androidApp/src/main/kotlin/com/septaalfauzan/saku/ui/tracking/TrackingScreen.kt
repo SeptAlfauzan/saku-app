@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,7 +26,9 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.notification.NotificationAccessManager
 import com.septaalfauzan.saku.ui.components.EmptyState
 import com.septaalfauzan.saku.ui.components.LabelCaps
@@ -37,7 +42,7 @@ import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun TrackingRoute(onBack: (() -> Unit)?) {
+fun TrackingRoute(onBack: (() -> Unit)?, onConfigureParser: (() -> Unit)? = null) {
     val viewModel: TrackingViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
     val palette = SakuTheme.palette
@@ -46,17 +51,19 @@ fun TrackingRoute(onBack: (() -> Unit)?) {
     val accessGranted by produceState(initialValue = false) {
         value = withContext(Dispatchers.Default) { NotificationAccessManager.isListening(context) }
     }
+    val scrollState = rememberScrollState()
 
-    Column(Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding)) {
+
+    Column(Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding).verticalScroll(scrollState)) {
         Spacer(Modifier.height(SakuDp.spaceSm))
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
                 IconButton(onClick = onBack) {
-                    Icon(SakuIcons.Back, contentDescription = "Back", tint = palette.ink)
+                    Icon(SakuIcons.Back, contentDescription = stringResource(R.string.common_back), tint = palette.ink)
                 }
             }
             Text(
-                if (onBack != null) "Automatic Tracking" else "Rules",
+                if (onBack != null) stringResource(R.string.tracking_automated) else stringResource(R.string.tracking_rules),
                 style = type.headlineLg,
                 color = palette.ink,
             )
@@ -72,16 +79,16 @@ fun TrackingRoute(onBack: (() -> Unit)?) {
             verticalArrangement = Arrangement.spacedBy(SakuDp.spaceSm),
         ) {
             Text(
-                "Reads notifications from selected financial apps to automatically record transactions. Notifications are processed locally whenever possible.",
+                stringResource(R.string.tracking_intro),
                 style = type.bodyMd,
                 color = palette.slate,
             )
             if (accessGranted) {
-                Text("Notification access granted", style = type.labelCaps, color = palette.crimson)
+                Text(stringResource(R.string.tracking_access_granted), style = type.labelCaps, color = palette.crimson)
             } else {
-                Text("Notification access not granted", style = type.labelCaps, color = palette.crimson)
+                Text(stringResource(R.string.tracking_access_not_granted), style = type.labelCaps, color = palette.crimson)
                 PillButton(
-                    "Enable Notification Access",
+                    stringResource(R.string.tracking_enable_access),
                     { NotificationAccessManager.openSettings(context) },
                     modifier = Modifier.fillMaxWidth(),
                     variant = PillButtonVariant.PRIMARY,
@@ -90,14 +97,25 @@ fun TrackingRoute(onBack: (() -> Unit)?) {
         }
 
         Spacer(Modifier.height(SakuDp.spaceMd))
-        RuleRow("Automatic Tracking", state.trackingEnabled, viewModel::toggleTrackingEnabled)
-        RuleRow("Auto-confirm high confidence", state.autoConfirm, viewModel::toggleAutoConfirm)
+        RuleRow(stringResource(R.string.tracking_automated), state.trackingEnabled, viewModel::toggleTrackingEnabled)
+        RuleRow(stringResource(R.string.tracking_auto_confirm), state.autoConfirm, viewModel::toggleAutoConfirm)
 
         Spacer(Modifier.height(SakuDp.spaceMd))
-        LabelCaps("Monitored Apps", color = palette.slate)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            LabelCaps(stringResource(R.string.tracking_monitored_apps), color = palette.slate)
+            if (onConfigureParser != null) {
+                TextButton(onClick = onConfigureParser) {
+                    Text(stringResource(R.string.tracking_configure), style = type.labelMd, color = palette.crimson)
+                }
+            }
+        }
         Spacer(Modifier.height(SakuDp.spaceXs))
         if (state.sources.isEmpty()) {
-            EmptyState(title = "No apps", body = "Enable a financial app to track.")
+            EmptyState(title = stringResource(R.string.tracking_no_apps), body = stringResource(R.string.tracking_no_apps_body))
         } else {
             state.sources.forEach { source ->
                 RuleRow(

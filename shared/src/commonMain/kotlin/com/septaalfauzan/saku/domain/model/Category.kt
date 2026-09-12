@@ -9,3 +9,7 @@ data class Category(
     val icon: String,
     val type: TransactionType,
 )
+
+fun List<Category>.defaultExpenseId(): String? =
+    firstOrNull { it.id == "other_expense" }?.id
+        ?: firstOrNull { it.type == TransactionType.EXPENSE }?.id

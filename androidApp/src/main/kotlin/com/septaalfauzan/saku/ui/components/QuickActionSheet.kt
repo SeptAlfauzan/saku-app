@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 
@@ -48,10 +50,10 @@ fun QuickActionSheet(
             Box(
                 Modifier.align(Alignment.CenterHorizontally).size(4.dp).background(palette.chalk, CircleShape),
             )
-            Text("Add Transaction", style = type.headlineSm, color = palette.ink)
-            Text("Select a recording method", style = type.bodyMd, color = palette.slate)
-            SheetAction("Scan Receipt", SakuIcons.Scanner, palette.crimson, onScanReceipt)
-            SheetAction("Manual Entry", SakuIcons.Edit, palette.ink, onManualEntry)
+            Text(stringResource(R.string.dashboard_add_transaction), style = type.headlineSm, color = palette.ink)
+            Text(stringResource(R.string.sheet_select_recording_method), style = type.bodyMd, color = palette.slate)
+            SheetAction(stringResource(R.string.sheet_scan_receipt), SakuIcons.Scanner, palette.crimson, onScanReceipt)
+            SheetAction(stringResource(R.string.sheet_manual_entry), SakuIcons.Edit, palette.ink, onManualEntry)
         }
     }
 }

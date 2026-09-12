@@ -226,7 +226,7 @@ class AppDatabaseTest {
     @Test
     fun settingsRepositorySeedsAndFlows() = runTest {
         val db = buildInMemory()
-        val repo = RoomNotificationSettingsRepository(db.sourceDao(), db.settingsDao())
+        val repo = RoomNotificationSettingsRepository(db.sourceDao(), db.settingsDao(), db.keywordDao())
         assertEquals(false, repo.observeTrackingEnabled().first())
         assertEquals(true, repo.observeAutoConfirm().first())
         val sources = repo.observeSources().first()

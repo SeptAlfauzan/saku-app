@@ -42,6 +42,8 @@ import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
+import androidx.compose.ui.res.stringResource
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.util.formatShortDate
 import java.time.Instant
 import java.time.ZoneId
@@ -50,8 +52,14 @@ import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
-    val viewModel: AddEditTransactionViewModel = koinViewModel(parameters = { parametersOf(transactionId) })
+fun AddEditRoute(
+    transactionId: String? = null,
+    prefillJson: String? = null,
+    onDone: () -> Unit,
+) {
+    val viewModel: AddEditTransactionViewModel = koinViewModel(
+        parameters = { parametersOf(transactionId, prefillJson) },
+    )
     val state by viewModel.uiState.collectAsState()
     val event by viewModel.events.collectAsState()
 
@@ -72,7 +80,7 @@ fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
         item { Spacer(Modifier.height(SakuDp.spaceSm)) }
         item {
             Text(
-                if (transactionId != null) "Edit Transaction" else "Add Transaction",
+                if (transactionId != null) stringResource(R.string.addedit_edit_title) else stringResource(R.string.addedit_add_title),
                 style = SakuTheme.type.headlineLg,
                 color = SakuTheme.palette.ink,
             )
@@ -103,7 +111,7 @@ fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
             }
         }
         item {
-            Text("Category", style = SakuTheme.type.labelCaps, color = SakuTheme.palette.slate)
+            Text(stringResource(R.string.addedit_category), style = SakuTheme.type.labelCaps, color = SakuTheme.palette.slate)
             LazyRow(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
                 items(state.categories, key = { it.id }) { category ->
                     FilterChip(
@@ -125,7 +133,7 @@ fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
                     textStyle = SakuTheme.type.bodyLg.copy(color = SakuTheme.palette.ink),
                     decorationBox = { inner ->
                         if (state.merchant.isEmpty()) {
-                            Text("Merchant", style = SakuTheme.type.bodyLg, color = SakuTheme.palette.slate)
+                            Text(stringResource(R.string.addedit_merchant_hint), style = SakuTheme.type.bodyLg, color = SakuTheme.palette.slate)
                         }
                         inner()
                     },
@@ -142,7 +150,7 @@ fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
                     textStyle = SakuTheme.type.bodyLg.copy(color = SakuTheme.palette.ink),
                     decorationBox = { inner ->
                         if (state.note.isEmpty()) {
-                            Text("Note", style = SakuTheme.type.bodyLg, color = SakuTheme.palette.slate)
+                            Text(stringResource(R.string.addedit_note_hint), style = SakuTheme.type.bodyLg, color = SakuTheme.palette.slate)
                         }
                         inner()
                     },
@@ -155,7 +163,7 @@ fun AddEditRoute(transactionId: String? = null, onDone: () -> Unit) {
         }
         item {
             PillButton(
-                text = if (transactionId != null) "Update" else "Save",
+                text = if (transactionId != null) stringResource(R.string.addedit_update) else stringResource(R.string.addedit_save),
                 onClick = viewModel::save,
                 enabled = state.canSave,
                 modifier = Modifier.fillMaxWidth(),
@@ -171,7 +179,7 @@ private fun TypeSelector(
     onSelect: (TransactionType) -> Unit,
 ) {
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-        val options = listOf(TransactionType.EXPENSE to "Expense", TransactionType.INCOME to "Income")
+        val options = listOf(TransactionType.EXPENSE to stringResource(R.string.common_expense), TransactionType.INCOME to stringResource(R.string.common_income))
         options.forEachIndexed { index, (value, label) ->
             SegmentedButton(
                 selected = type == value,
@@ -213,11 +221,11 @@ private fun DateField(
                         showPicker = false
                     },
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.common_ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.common_cancel)) }
             },
         ) {
             DatePicker(state = pickerState)
@@ -228,7 +236,7 @@ private fun DateField(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Date", style = SakuTheme.type.labelCaps, color = SakuTheme.palette.slate)
+        Text(stringResource(R.string.common_date), style = SakuTheme.type.labelCaps, color = SakuTheme.palette.slate)
         Spacer(Modifier.width(12.dp))
         TextButton(onClick = { showPicker = true }) {
             Text(formatShortDate(occurredAtMillis), style = SakuTheme.type.labelMd, color = SakuTheme.palette.crimson)

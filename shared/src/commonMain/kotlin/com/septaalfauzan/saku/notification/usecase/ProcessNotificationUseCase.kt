@@ -10,6 +10,7 @@ import com.septaalfauzan.saku.notification.confidence.ConfidenceEngine
 import com.septaalfauzan.saku.notification.duplicate.DuplicateDetector
 import com.septaalfauzan.saku.notification.engine.NotificationParserEngine
 import com.septaalfauzan.saku.notification.model.NotificationData
+import com.septaalfauzan.saku.notification.provider.ParserRegistry
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -20,13 +21,21 @@ class ProcessNotificationUseCase(
     private val settings: NotificationSettingsRepository,
     private val repository: TransactionRepository,
     private val duplicateDetector: DuplicateDetector,
+    private val parserRegistry: ParserRegistry,
     private val clock: () -> Instant = { Clock.System.now() },
 ) {
+    private var rebuildDone = false
+
     suspend operator fun invoke(notification: NotificationData) {
         if (!settings.observeTrackingEnabled().first()) return
 
+        if (!rebuildDone) {
+            rebuildParserRegistry()
+            rebuildDone = true
+        }
+
         val enabled = settings.observeSources().first()
-            .any { it.packageName == notification.packageName && it.enabled}
+            .any { it.packageName == notification.packageName && it.enabled }
         if (!enabled) return
 
         val parsed = engine.process(notification) ?: return
@@ -65,5 +74,11 @@ class ProcessNotificationUseCase(
                 updatedAt = now,
             ),
         )
+    }
+
+    private suspend fun rebuildParserRegistry() {
+        val sources = settings.observeSources().first()
+        val allKeywords = sources.associate { it.packageName to settings.getKeywords(it.packageName) }
+        parserRegistry.rebuild(sources, allKeywords)
     }
 }

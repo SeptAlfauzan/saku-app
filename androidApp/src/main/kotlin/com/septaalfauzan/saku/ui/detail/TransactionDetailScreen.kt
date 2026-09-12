@@ -27,7 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.domain.model.TransactionStatus
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
@@ -62,7 +64,7 @@ fun DetailRoute(transactionId: String, onEdit: () -> Unit, onDeleted: () -> Unit
 
     val transaction = tx
     if (transaction == null) {
-        Text("Transaction not found", modifier = Modifier.padding(24.dp), color = palette.ink)
+        Text(stringResource(R.string.detail_not_found), modifier = Modifier.padding(24.dp), color = palette.ink)
         return
     }
 
@@ -76,7 +78,7 @@ fun DetailRoute(transactionId: String, onEdit: () -> Unit, onDeleted: () -> Unit
             Icon(categoryGlyph(transaction.categoryId), contentDescription = null, tint = palette.ink, modifier = Modifier.size(28.dp))
         }
         Spacer(Modifier.height(SakuDp.spaceMd))
-        Text(transaction.merchant ?: transaction.description ?: "Transaction", style = type.headlineMd, color = palette.ink)
+        Text(transaction.merchant ?: transaction.description ?: stringResource(R.string.detail_fallback_title), style = type.headlineMd, color = palette.ink)
         Spacer(Modifier.height(SakuDp.spaceXs))
         Text(
             text = (if (transaction.isIncome) "+" else "-") + formatRupiah(transaction.amount),
@@ -87,19 +89,19 @@ fun DetailRoute(transactionId: String, onEdit: () -> Unit, onDeleted: () -> Unit
         Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
             DetailTag(categoryLabel(transaction.categoryId))
             DetailTag(transaction.source.name.lowercase().replaceFirstChar { it.uppercase() })
-            if (transaction.status == TransactionStatus.PENDING_REVIEW) DetailTag("Pending review", accent = true)
+            if (transaction.status == TransactionStatus.PENDING_REVIEW) DetailTag(stringResource(R.string.detail_pending_review), accent = true)
         }
 
         Spacer(Modifier.height(SakuDp.space2xl))
-        DividerRow("Date", formatShortDate(transaction.occurredAt.toEpochMilliseconds()), palette, type)
-        DividerRow("Amount", formatRupiah(transaction.amount), palette, type)
-        DividerRow("Source", transaction.sourcePackage ?: transaction.source.name, palette, type)
+        DividerRow(stringResource(R.string.common_date), formatShortDate(transaction.occurredAt.toEpochMilliseconds()), palette, type)
+        DividerRow(stringResource(R.string.common_amount), formatRupiah(transaction.amount), palette, type)
+        DividerRow(stringResource(R.string.common_source), transaction.sourcePackage ?: transaction.source.name, palette, type)
 
         Spacer(Modifier.weight(1f))
-        PillButton("Edit", viewModel::requestEdit, icon = SakuIcons.Edit, variant = PillButtonVariant.GHOST)
+        PillButton(stringResource(R.string.common_edit), viewModel::requestEdit, icon = SakuIcons.Edit, variant = PillButtonVariant.GHOST)
         Spacer(Modifier.height(SakuDp.spaceXs))
         PillButton(
-            text = "Delete",
+            text = stringResource(R.string.common_delete),
             onClick = { showDeleteDialog = true },
             icon = SakuIcons.Delete,
             variant = PillButtonVariant.PRIMARY,
@@ -110,12 +112,12 @@ fun DetailRoute(transactionId: String, onEdit: () -> Unit, onDeleted: () -> Unit
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete transaction?") },
-            text = { Text("This cannot be undone.") },
+            title = { Text(stringResource(R.string.detail_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.detail_delete_confirm_body)) },
             confirmButton = {
-                Button(onClick = { showDeleteDialog = false; viewModel.requestDelete() }) { Text("Delete") }
+                Button(onClick = { showDeleteDialog = false; viewModel.requestDelete() }) { Text(stringResource(R.string.common_delete)) }
             },
-            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.common_cancel)) } },
         )
     }
 }

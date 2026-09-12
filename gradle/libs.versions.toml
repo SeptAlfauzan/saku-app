@@ -13,6 +13,7 @@ androidx-testCore = "1.6.1"
 robolectric = "4.16.1"
 composeMultiplatform = "1.11.1"
 camera = "1.4.2"
+androidx-exif = "1.4.1"
 composeMaterialIcons = "1.7.3"
 junit = "4.13.2"
 koin = "4.2.1"
@@ -25,6 +26,8 @@ material3 = "1.11.0-alpha07"
 room3 = "3.0.2"
 androidx-navigation = "2.9.0"
 androidx-sqlite = "2.7.0"
+uiUnit = "1.12.0"
+firebaseCrashlyticsBuildtools = "3.0.8"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -47,6 +50,7 @@ androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera" }
+androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "androidx-exif" }
 compose-materialIconsExtended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "composeMaterialIcons" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
@@ -67,6 +71,8 @@ koin-android = { module = "io.insert-koin:koin-android" }
 koin-androidxCompose = { module = "io.insert-koin:koin-androidx-compose" }
 androidx-lifecycle-viewModel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-navigationCompose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
+androidx-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
+firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

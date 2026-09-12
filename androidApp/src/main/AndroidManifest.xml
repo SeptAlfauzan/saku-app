@@ -4,7 +4,65 @@
     <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <queries>
+        <!-- Mobile Banking -->
 
+        <!-- BCA -->
+        <package android:name="com.bca" />
+        <package android:name="com.bca.mybca.omni.android" />
+
+        <!-- BRI -->
+        <package android:name="id.co.bri.brimo" />
+
+        <!-- BNI -->
+        <package android:name="com.bni.mobilebanking" />
+        <package android:name="id.bni.wondr" />
+
+        <!-- Mandiri -->
+        <package android:name="id.bmri.livin" />
+
+        <!-- CIMB Niaga -->
+        <package android:name="id.co.cimbniaga.mobile.android" />
+
+        <!-- BTN -->
+        <package android:name="id.co.btn.mobilebanking.android" />
+
+        <!-- BSI -->
+        <package android:name="com.bsi.universalbanking" />
+
+        <!-- Jenius -->
+        <package android:name="com.btpn.dc" />
+
+        <!-- Bank Jago -->
+        <package android:name="com.jago.digitalBanking" />
+
+        <!-- SeaBank -->
+        <package android:name="id.co.seabank.app" />
+
+
+        <!-- E-Wallet -->
+
+        <!-- DANA -->
+        <package android:name="com.dana.id" />
+
+        <!-- GoPay -->
+        <package android:name="com.gojek.gopay" />
+
+        <!-- OVO -->
+        <package android:name="id.co.ovo.app" />
+
+        <!-- Shopee / ShopeePay -->
+        <package android:name="com.shopee.id" />
+
+        <!-- LinkAja -->
+        <package android:name="com.telkom.mwallet" />
+
+        <!-- AstraPay -->
+        <package android:name="com.ada.astrapay" />
+
+        <!-- i.saku -->
+        <package android:name="id.co.isaku" />>
+    </queries>
     <application
         android:name=".SubTrackApplication"
         android:allowBackup="true"
