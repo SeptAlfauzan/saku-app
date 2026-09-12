@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.codec.binary.Base64
 import com.septaalfauzan.saku.domain.model.Receipt
+import com.septaalfauzan.saku.domain.model.TransactionSource
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.model.defaultExpenseId
 import com.septaalfauzan.saku.domain.model.toItemsNote
@@ -77,6 +78,7 @@ class ScannerViewModel(
                     categoryId = categories.defaultExpenseId(),
                     description = receipt.toItemsNote().ifBlank { null },
                     occurredAt = parseReceiptDate(receipt.transactionDate) ?: Clock.System.now(),
+                    source = TransactionSource.SCAN,
                 )
                 addTransaction.store(tx)
                 _event.value = ScannerEvent.Saved
