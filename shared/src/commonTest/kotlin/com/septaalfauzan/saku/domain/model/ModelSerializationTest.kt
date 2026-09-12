@@ -62,4 +62,11 @@ class ModelSerializationTest {
         val decoded = json.decodeFromString(Transaction.serializer(), json.encodeToString(Transaction.serializer(), tx))
         assertEquals(tx, decoded)
     }
+
+    @Test
+    fun scanTransactionSerializes() {
+        val tx = sampleTransaction().copy(source = TransactionSource.SCAN)
+        val decoded = json.decodeFromString(Transaction.serializer(), json.encodeToString(Transaction.serializer(), tx))
+        assertEquals(tx, decoded)
+    }
 }
