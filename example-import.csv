@@ -1,0 +1,5 @@
+Transaction ID,Type,Amount,Currency,Merchant,Category,Notes,Entry Method,Detected From,Status,Date & Time,Created At,Confidence
+,Income,5000000,IDR,Gaji September,Salary,,Manual,,Confirmed,2026-09-01 09:00:00,2026-09-01 08:00:00,
+,Expense,25000,IDR,"Bakso Pak Madi, Mangga Besar",Food,Makan siang,Manual,,Confirmed,2026-09-02 12:30:00,,
+,Expense,85000,IDR,GO-JEK,Transport,Perjalanan,Manual,,Pending,2026-09-03,2026-09-03 10:00:00,100%
+,Income,50000,IDR,Cashback Shopee,Cashback,Reward bulanan,Manual,,Confirmed,2026-09-04 20:11:00,,

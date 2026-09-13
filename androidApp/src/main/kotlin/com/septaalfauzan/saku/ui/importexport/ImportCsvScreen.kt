@@ -78,12 +78,17 @@ fun ImportCsvRoute(onBack: () -> Unit, vm: ImportCsvViewModel = koinViewModel())
         ) {
             Icon(
                 SakuIcons.Back, contentDescription = stringResource(R.string.common_back),
-                tint = palette.ink, modifier = Modifier
+                tint = palette.ink,
+                modifier = Modifier
                     .size(40.dp)
                     .clickable { onBack() }
                     .padding(SakuDp.spaceXs),
             )
-            Text(stringResource(R.string.import_title), style = type.headlineLg, color = palette.ink)
+            Text(
+                stringResource(R.string.import_title),
+                style = type.headlineLg,
+                color = palette.ink
+            )
         }
 
         when (val current = state) {
@@ -91,7 +96,7 @@ fun ImportCsvRoute(onBack: () -> Unit, vm: ImportCsvViewModel = koinViewModel())
             is ImportCsvUiState.Parsing -> ImportProcessingContent()
             is ImportCsvUiState.Preview -> ImportPreviewContent(current, vm)
             is ImportCsvUiState.Applying -> ImportProcessingContent()
-            is ImportCsvUiState.Done -> ImportDoneContent(current, vm)
+            is ImportCsvUiState.Done -> ImportDoneContent(current, vm, onBack)
             is ImportCsvUiState.Failed -> ImportFailedContent(current, onBack)
         }
     }
@@ -110,7 +115,12 @@ private fun ImportIdleContent(openPicker: () -> Unit) {
             .padding(vertical = SakuDp.space3xl, horizontal = SakuDp.spaceLg),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(SakuIcons.FileOpen, contentDescription = null, tint = palette.slate, modifier = Modifier.size(32.dp))
+        Icon(
+            SakuIcons.FileOpen,
+            contentDescription = null,
+            tint = palette.slate,
+            modifier = Modifier.size(32.dp)
+        )
         Spacer(Modifier.height(SakuDp.spaceSm))
         Text(
             stringResource(R.string.import_pick_title),
@@ -137,13 +147,19 @@ private fun ImportProcessingContent() {
     val type = SakuTheme.type
     Spacer(Modifier.height(SakuDp.space3xl))
     Box(
-        Modifier.fillMaxWidth().height(240.dp),
+        Modifier
+            .fillMaxWidth()
+            .height(240.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator(color = palette.ink)
             Spacer(Modifier.height(SakuDp.spaceMd))
-            Text(stringResource(R.string.import_processing), style = type.bodyMd, color = palette.slate)
+            Text(
+                stringResource(R.string.import_processing),
+                style = type.bodyMd,
+                color = palette.slate
+            )
         }
     }
 }
@@ -158,9 +174,17 @@ private fun ImportPreviewContent(preview: ImportCsvUiState.Preview, vm: ImportCs
     Spacer(Modifier.height(SakuDp.spaceSm))
     Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXl)) {
         CountPod(preview.newCount, stringResource(R.string.import_preview_summary_new), palette.ink)
-        CountPod(preview.updateCount, stringResource(R.string.import_preview_summary_update), palette.slate)
+        CountPod(
+            preview.updateCount,
+            stringResource(R.string.import_preview_summary_update),
+            palette.slate
+        )
         if (!preview.skipDuplicates) {
-            CountPod(preview.duplicateCount, stringResource(R.string.import_preview_summary_duplicate), palette.crimson)
+            CountPod(
+                preview.duplicateCount,
+                stringResource(R.string.import_preview_summary_duplicate),
+                palette.crimson
+            )
         }
     }
 
@@ -173,7 +197,12 @@ private fun ImportPreviewContent(preview: ImportCsvUiState.Preview, vm: ImportCs
         )
         preview.errors.forEach { error ->
             Text(
-                stringResource(R.string.import_preview_error_row, error.row, error.field, error.reason),
+                stringResource(
+                    R.string.import_preview_error_row,
+                    error.row,
+                    error.field,
+                    error.reason
+                ),
                 style = type.bodySm,
                 color = palette.crimson,
             )
@@ -220,7 +249,9 @@ private fun ImportSampleRow(draft: TransactionDraft) {
     val title = draft.merchant ?: stringResource(R.string.detail_fallback_title)
     val date = formatShortDate(draft.occurredAt.toEpochMilliseconds())
     Row(
-        Modifier.fillMaxWidth().padding(vertical = SakuDp.spaceSm),
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = SakuDp.spaceSm),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -237,7 +268,11 @@ private fun ImportSampleRow(draft: TransactionDraft) {
 }
 
 @Composable
-private fun ImportDoneContent(done: ImportCsvUiState.Done, vm: ImportCsvViewModel) {
+private fun ImportDoneContent(
+    done: ImportCsvUiState.Done,
+    vm: ImportCsvViewModel,
+    onBack: () -> Unit
+) {
     val palette = SakuTheme.palette
     val type = SakuTheme.type
     Spacer(Modifier.height(SakuDp.spaceLg))
@@ -263,6 +298,14 @@ private fun ImportDoneContent(done: ImportCsvUiState.Done, vm: ImportCsvViewMode
         variant = PillButtonVariant.GHOST,
     )
     Spacer(Modifier.height(SakuDp.spaceXl))
+    PillButton(
+        text = stringResource(R.string.back_to_home),
+        onClick = {
+            onBack()
+            onBack()
+        },
+        variant = PillButtonVariant.PRIMARY,
+    )
 }
 
 @Composable

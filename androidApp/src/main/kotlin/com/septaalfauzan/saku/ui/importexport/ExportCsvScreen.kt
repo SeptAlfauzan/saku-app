@@ -51,7 +51,7 @@ fun ExportCsvRoute(onBack: () -> Unit, vm: ExportCsvViewModel = koinViewModel())
     val context = LocalContext.current
     var done by remember { mutableStateOf<ExportTransactions.Result?>(null) }
     val defaultFileName = remember {
-        "bigpickle-transactions-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"))}.csv"
+        "transactions-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"))}.csv"
     }
 
     val launcher = rememberLauncherForActivityResult(

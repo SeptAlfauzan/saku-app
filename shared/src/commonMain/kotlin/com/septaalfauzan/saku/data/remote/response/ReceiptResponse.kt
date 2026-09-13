@@ -12,21 +12,22 @@ data class ReceiptResponse(
 @kotlinx.serialization.Serializable
 data class ReceiptData(
     @SerialName("merchant_name")
-    val merchantName: String,
+    val merchantName: String?,
 
     @SerialName("transaction_date")
-    val transactionDate: String,
+    val transactionDate: String?,
+
 
     @SerialName("transaction_time")
-    val transactionTime: String,
+    val transactionTime: String?,
 
-    val currency: String,
+    val currency: String?,
 
     val subtotal: Long?,
 
-    val tax: Long,
+    val tax: Long?,
 
-    val discount: Long,
+    val discount: Long?,
 
     val total: Long,
 
@@ -49,13 +50,13 @@ data class ReceiptItem(
 )
 
 fun ReceiptData.toDomain(): Receipt = Receipt(
-    this.merchantName,
-    this.transactionDate,
-    this.transactionTime,
-    this.currency,
+    this.merchantName ?: "",
+    this.transactionDate ?: "",
+    this.transactionTime ?: "",
+    this.currency ?: "IDR",
     this.subtotal,
-    this.tax,
-    this.discount,
+    this.tax ?: 0L,
+    this.discount ?: 0L,
     this.total,
     this.paymentMethod,
     items = this.items.map {
