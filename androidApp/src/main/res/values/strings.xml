@@ -133,4 +133,11 @@
     <string name="sheet.select_recording_method">Pilih metode pencatatan</string>
     <string name="sheet.scan_receipt">Pindai Struk</string>
     <string name="sheet.manual_entry">Input Manual</string>
+
+    <!-- Settings / Data -->
+    <string name="settings.title">Pengaturan</string>
+    <string name="settings.export_transactions">Ekspor Transaksi</string>
+    <string name="settings.export_body">Simpan CSV untuk dianalisis di Sheets/Excel</string>
+    <string name="settings.import_transactions">Impor Transaksi</string>
+    <string name="settings.import_body">Muat CSV untuk membuat/mengubah banyak transaksi</string>
 </resources>

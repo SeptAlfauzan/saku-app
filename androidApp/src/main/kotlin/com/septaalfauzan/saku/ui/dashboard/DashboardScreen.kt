@@ -49,6 +49,7 @@ fun DashboardRoute(
     onOpenTracking: () -> Unit,
     onOpenTransaction: (String) -> Unit,
     onOpenAll: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val viewModel: DashboardViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
@@ -158,12 +159,22 @@ fun DashboardRoute(
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.dashboard_recent_activity), style = type.headlineSm, color = palette.ink)
-                Text(
-                    stringResource(R.string.dashboard_view_all),
-                    style = type.labelMd,
-                    color = palette.crimson,
-                    modifier = Modifier.clickable { onOpenAll() },
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.dashboard_view_all),
+                        style = type.labelMd,
+                        color = palette.crimson,
+                        modifier = Modifier.clickable { onOpenAll() },
+                    )
+                    Icon(
+                        SakuIcons.Settings, contentDescription = stringResource(R.string.settings_title),
+                        tint = palette.slate,
+                        modifier = Modifier
+                            .size(22.dp)
+                            .padding(start = 8.dp)
+                            .clickable { onOpenSettings() },
+                    )
+                }
             }
             Spacer(Modifier.height(SakuDp.spaceXs))
         }

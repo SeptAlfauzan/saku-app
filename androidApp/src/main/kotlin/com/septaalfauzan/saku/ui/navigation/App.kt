@@ -48,6 +48,7 @@ import com.septaalfauzan.saku.ui.scanner.ScannerScreen
 import com.septaalfauzan.saku.ui.configure.ConfigureParserRoute
 import com.septaalfauzan.saku.ui.tracking.TrackingRoute
 import com.septaalfauzan.saku.ui.transactions.TransactionListRoute
+import com.septaalfauzan.saku.ui.settings.SettingsRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import kotlinx.serialization.json.Json
@@ -63,6 +64,9 @@ object Routes {
     const val RULES = "rules"
     const val SCANNER = "scanner"
     const val CONFIGURE_PARSER = "configure-parser"
+    const val SETTINGS = "settings"
+    const val EXPORT = "export"
+    const val IMPORT = "import"
     fun edit(id: String) = "edit/$id"
     fun detail(id: String) = "detail/$id"
     fun addScan(receipt: Receipt): String {
@@ -154,12 +158,14 @@ fun App() {
                             onOpenTracking = { navController.navigate(Routes.TRACKING) },
                             onOpenTransaction = { id -> navController.navigate(Routes.detail(id)) },
                             onOpenAll = { navController.navigate(Routes.TRANSACTIONS) },
+                            onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                         )
                     }
                     composable(Routes.TRANSACTIONS) {
                         TransactionListRoute(
                             onOpen = { id -> navController.navigate(Routes.detail(id)) },
                             onAdd = { navController.navigate(Routes.ADD) },
+                            onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                         )
                     }
                     composable(
@@ -225,6 +231,23 @@ fun App() {
                             onBack = { navController.popBackStack() },
                             onEdit = { receipt -> navController.navigate(Routes.addScan(receipt)) },
                         )
+                    }
+                    composable(Routes.SETTINGS) {
+                        SettingsRoute(
+                            onBack = { navController.popBackStack() },
+                            onOpenExport = { navController.navigate(Routes.EXPORT) },
+                            onOpenImport = { navController.navigate(Routes.IMPORT) },
+                        )
+                    }
+                    composable(Routes.EXPORT) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Export")
+                        }
+                    }
+                    composable(Routes.IMPORT) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Import")
+                        }
                     }
                 }
 
