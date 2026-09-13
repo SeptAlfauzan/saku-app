@@ -7,6 +7,9 @@ import org.koin.test.check.checkModules
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import kotlin.test.Test
+import kotlin.test.assertNotNull
+import com.septaalfauzan.saku.domain.importexport.ExportTransactions
+import com.septaalfauzan.saku.domain.importexport.ImportTransactions
 
 @RunWith(RobolectricTestRunner::class)
 class AppModuleTest : KoinTest {
@@ -19,6 +22,18 @@ class AppModuleTest : KoinTest {
             modules(appModule)
         }
         app.checkModules { }
+        stopKoin()
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun importExportGraphResolves() {
+        AppModuleHostSetup.apply()
+        val app = startKoin {
+            modules(appModule)
+        }
+        assertNotNull(app.koin.get<ExportTransactions>())
+        assertNotNull(app.koin.get<ImportTransactions>())
         stopKoin()
     }
 }
