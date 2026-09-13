@@ -154,6 +154,7 @@
     <string name="export.done_title">Export Selesai</string>
     <string name="export.done_body">%1$d transaksi diekspor.</string>
     <string name="export.excluded_note">%1$d transaksi transfer tidak disertakan.</string>
+    <string name="export.failed">Ekspor gagal. Silakan coba lagi.</string>
 
     <!-- Import -->
     <string name="import.title">Impor Transaksi</string>

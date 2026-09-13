@@ -7,14 +7,15 @@ object CsvParser {
      * Blank lines are dropped; the header (first row) is kept as element 0.
      */
     fun parse(input: String): List<List<String>> {
-        val delimiter = detectDelimiter(input)
+        val text = if (input.startsWith('\uFEFF')) input.removePrefix("\uFEFF") else input
+        val delimiter = detectDelimiter(text)
         val rows = mutableListOf<List<String>>()
         var row = mutableListOf<String>()
         val field = StringBuilder()
         var inQuotes = false
         var i = 0
-        while (i < input.length) {
-            val c = input[i]
+        while (i < text.length) {
+            val c = text[i]
             when {
                 inQuotes -> {
                     if (c == '"') {

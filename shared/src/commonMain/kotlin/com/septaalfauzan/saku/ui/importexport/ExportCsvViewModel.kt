@@ -31,7 +31,7 @@ data class ExportCsvUiState(
     val type: TransactionType? = null,
     val categoryId: String? = null,
     val building: Boolean = false,
-    val message: String? = null,
+    val failed: Boolean = false,
 )
 
 class ExportCsvViewModel(
@@ -61,22 +61,22 @@ class ExportCsvViewModel(
             datePreset = preset,
             dateStart = start,
             dateEnd = end,
-            message = null,
+            failed = false,
         )
     }
 
     fun setType(type: TransactionType?) {
-        _uiState.value = _uiState.value.copy(type = type, message = null)
+        _uiState.value = _uiState.value.copy(type = type, failed = false)
     }
 
     fun setCategory(id: String?) {
-        _uiState.value = _uiState.value.copy(categoryId = id, message = null)
+        _uiState.value = _uiState.value.copy(categoryId = id, failed = false)
     }
 
     fun buildCsv(onResult: (ExportTransactions.Result) -> Unit) {
         val state = _uiState.value
         if (state.building) return
-        _uiState.value = state.copy(building = true, message = null)
+        _uiState.value = state.copy(building = true, failed = false)
         viewModelScope.launch {
             runCatching {
                 val zone = TimeZone.currentSystemDefault()
@@ -95,7 +95,7 @@ class ExportCsvViewModel(
             }.onFailure {
                 _uiState.value = _uiState.value.copy(
                     building = false,
-                    message = "Ekspor gagal. Silakan coba lagi.",
+                    failed = true,
                 )
             }
         }

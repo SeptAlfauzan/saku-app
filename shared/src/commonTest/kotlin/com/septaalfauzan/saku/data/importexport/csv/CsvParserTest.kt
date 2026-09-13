@@ -60,4 +60,10 @@ class CsvParserTest {
         val rows = CsvParser.parse("a;b;c\r\n1;2;3\r\n")
         assertEquals(listOf(listOf("a", "b", "c"), listOf("1", "2", "3")), rows)
     }
+
+    @Test
+    fun stripsLeadingUtf8Bom() {
+        val rows = CsvParser.parse("\uFEFFTransaction ID,Type,Amount\r\n1,Expense,5000\r\n")
+        assertEquals(listOf(listOf("Transaction ID", "Type", "Amount"), listOf("1", "Expense", "5000")), rows)
+    }
 }

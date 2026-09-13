@@ -271,8 +271,10 @@ private fun ImportFailedContent(failed: ImportCsvUiState.Failed, onBack: () -> U
     val type = SakuTheme.type
     Spacer(Modifier.height(SakuDp.spaceLg))
     Text(stringResource(R.string.import_failed_title), style = type.headlineSm, color = palette.ink)
-    Spacer(Modifier.height(SakuDp.spaceXs))
-    Text(failed.reason, style = type.bodySm, color = palette.crimson)
+    if (failed.reason.isNotBlank()) {
+        Spacer(Modifier.height(SakuDp.spaceXs))
+        Text(failed.reason, style = type.bodySm, color = palette.crimson)
+    }
     Spacer(Modifier.height(SakuDp.spaceLg))
     PillButton(text = stringResource(R.string.common_back), onClick = onBack)
     Spacer(Modifier.height(SakuDp.spaceXl))

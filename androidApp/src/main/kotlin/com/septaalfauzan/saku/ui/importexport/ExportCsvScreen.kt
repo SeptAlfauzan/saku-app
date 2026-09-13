@@ -39,6 +39,8 @@ import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import org.koin.androidx.compose.koinViewModel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -48,17 +50,23 @@ fun ExportCsvRoute(onBack: () -> Unit, vm: ExportCsvViewModel = koinViewModel())
     val type = SakuTheme.type
     val context = LocalContext.current
     var done by remember { mutableStateOf<ExportTransactions.Result?>(null) }
+    val defaultFileName = remember {
+        "bigpickle-transactions-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"))}.csv"
+    }
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("text/csv"),
     ) { uri ->
         if (uri != null) {
             vm.buildCsv { result ->
-                context.contentResolver.openOutputStream(uri)?.use { os ->
-                    os.write("\uFEFF".toByteArray(Charsets.UTF_8))
-                    os.write(result.csv.toByteArray(Charsets.UTF_8))
+                runCatching {
+                    context.contentResolver.openOutputStream(uri)?.use { os ->
+                        os.write("\uFEFF".toByteArray(Charsets.UTF_8))
+                        os.write(result.csv.toByteArray(Charsets.UTF_8))
+                    }
+                }.onSuccess {
+                    done = result
                 }
-                done = result
             }
         }
     }
@@ -126,15 +134,14 @@ fun ExportCsvRoute(onBack: () -> Unit, vm: ExportCsvViewModel = koinViewModel())
 
         val result = done
         if (result == null) {
-            val message = state.message
             PillButton(
                 text = stringResource(R.string.export_export_button),
-                onClick = { launcher.launch("saku-export.csv") },
+                onClick = { launcher.launch(defaultFileName) },
                 enabled = !state.building,
             )
-            if (message != null) {
+            if (state.failed) {
                 Spacer(Modifier.height(SakuDp.spaceSm))
-                Text(message, style = type.bodySm, color = palette.crimson)
+                Text(stringResource(R.string.export_failed), style = type.bodySm, color = palette.crimson)
             }
         } else {
             Text(stringResource(R.string.export_done_title), style = type.headlineSm, color = palette.ink)

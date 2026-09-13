@@ -77,7 +77,7 @@ class ImportCsvViewModel(
                 }
             }.onSuccess { state -> _uiState.value = state }
                 .onFailure { error ->
-                    _uiState.value = ImportCsvUiState.Failed(error.message ?: "File tidak bisa dibaca")
+                    _uiState.value = ImportCsvUiState.Failed(error.message ?: "")
                 }
         }
     }
@@ -108,7 +108,7 @@ class ImportCsvViewModel(
                 )
             }.onSuccess { state -> _uiState.value = state }
                 .onFailure { error ->
-                    _uiState.value = ImportCsvUiState.Failed(error.message ?: "Impor gagal")
+                    _uiState.value = ImportCsvUiState.Failed(error.message ?: "")
                 }
         }
     }
