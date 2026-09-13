@@ -140,4 +140,18 @@
     <string name="settings.export_body">Simpan CSV untuk dianalisis di Sheets/Excel</string>
     <string name="settings.import_transactions">Impor Transaksi</string>
     <string name="settings.import_body">Muat CSV untuk membuat/mengubah banyak transaksi</string>
+
+    <!-- Export -->
+    <string name="export.title">Ekspor Transaksi</string>
+    <string name="export.date_range">Rentang Tanggal</string>
+    <string name="export.type">Tipe</string>
+    <string name="export.category">Kategori</string>
+    <string name="export.all">Semua</string>
+    <string name="export.this_month">Bulan Ini</string>
+    <string name="export.this_year">Tahun Ini</string>
+    <string name="export.export_button">Ekspor CSV</string>
+    <string name="export.export_again">Ekspor Lagi</string>
+    <string name="export.done_title">Export Selesai</string>
+    <string name="export.done_body">%1$d transaksi diekspor.</string>
+    <string name="export.excluded_note">%1$d transaksi transfer tidak disertakan.</string>
 </resources>

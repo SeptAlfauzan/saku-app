@@ -49,6 +49,7 @@ import com.septaalfauzan.saku.ui.configure.ConfigureParserRoute
 import com.septaalfauzan.saku.ui.tracking.TrackingRoute
 import com.septaalfauzan.saku.ui.transactions.TransactionListRoute
 import com.septaalfauzan.saku.ui.settings.SettingsRoute
+import com.septaalfauzan.saku.ui.importexport.ExportCsvRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import kotlinx.serialization.json.Json
@@ -240,9 +241,7 @@ fun App() {
                         )
                     }
                     composable(Routes.EXPORT) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Export")
-                        }
+                        ExportCsvRoute(onBack = { navController.popBackStack() })
                     }
                     composable(Routes.IMPORT) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
