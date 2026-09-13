@@ -37,6 +37,12 @@ interface TransactionDao {
     @Query("UPDATE transactions SET status = :status WHERE id = :id")
     suspend fun setStatus(id: String, status: String)
 
+    @Query("SELECT * FROM transactions")
+    suspend fun getAll(): List<TransactionEntity>
+
+    @Query("DELETE FROM transactions WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<String>)
+
     @Query(
         "SELECT * FROM transactions WHERE sourcePackage = :sourcePackage AND type = :type AND amount = :amount " +
             "AND occurredAtMillis BETWEEN :startMillis AND :endMillis LIMIT 1",

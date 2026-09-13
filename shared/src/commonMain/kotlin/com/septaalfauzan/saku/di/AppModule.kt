@@ -62,7 +62,7 @@ val appModule = module {
     single { get<AppDatabase>().keywordDao() }
     single { RemoteClient().createHttpClient() }
     single<ApiService> { ApiServiceImpl(get(), "https://saku-api.septaalfauzan.my.id") }
-    single<TransactionRepository> { RoomTransactionRepository(get(), get()) }
+    single<TransactionRepository> { RoomTransactionRepository(get(), get(), get()) }
     single<NotificationSettingsRepository> {
         val registry = get<ParserRegistry>()
         RoomNotificationSettingsRepository(get(), get(), get()).apply {

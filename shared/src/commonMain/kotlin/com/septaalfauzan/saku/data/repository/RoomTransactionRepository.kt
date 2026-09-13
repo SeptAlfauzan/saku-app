@@ -1,10 +1,15 @@
 package com.septaalfauzan.saku.data.repository
 
+import androidx.room3.withWriteTransaction
 import com.septaalfauzan.saku.data.dao.CategoryDao
 import com.septaalfauzan.saku.data.dao.TransactionDao
+import com.septaalfauzan.saku.data.database.AppDatabase
 import com.septaalfauzan.saku.data.database.CategorySeed
+import com.septaalfauzan.saku.data.entity.TransactionEntity
 import com.septaalfauzan.saku.data.entity.toDomain
 import com.septaalfauzan.saku.data.entity.toEntity
+import com.septaalfauzan.saku.domain.importexport.ApplyResult
+import com.septaalfauzan.saku.domain.importexport.UndoSnapshot
 import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.DuplicateKey
 import com.septaalfauzan.saku.domain.model.Transaction
@@ -18,6 +23,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class RoomTransactionRepository(
+    private val db: AppDatabase,
     private val transactionDao: TransactionDao,
     private val categoryDao: CategoryDao,
 ) : TransactionRepository {
@@ -80,4 +86,36 @@ class RoomTransactionRepository(
             startMillis = withinStartMillis,
             endMillis = withinEndMillis,
         )?.toDomain()
+
+    override suspend fun getAll(): List<Transaction> =
+        transactionDao.getAll().map { it.toDomain() }
+
+    override suspend fun applyImport(changes: List<Transaction>): ApplyResult = db.withWriteTransaction {
+        val existing = transactionDao.getAll().associateBy { it.id }
+        val created = mutableListOf<String>()
+        val updated = mutableListOf<String>()
+        val previous = mutableMapOf<String, TransactionEntity>()
+        changes.forEach { tx ->
+            val entity = tx.toEntity()
+            val current = existing[tx.id]
+            if (current != null) {
+                previous[tx.id] = current
+                transactionDao.update(entity)
+                updated += tx.id
+            } else {
+                transactionDao.insert(entity)
+                created += tx.id
+            }
+        }
+        ApplyResult(
+            newCount = created.size,
+            updateCount = updated.size,
+            snapshot = UndoSnapshot(created, previous.mapValues { it.value.toDomain() }),
+        )
+    }
+
+    override suspend fun undoImport(snapshot: UndoSnapshot) = db.withWriteTransaction {
+        snapshot.previousById.forEach { (_, tx) -> transactionDao.update(tx.toEntity()) }
+        transactionDao.deleteByIds(snapshot.newIds)
+    }
 }

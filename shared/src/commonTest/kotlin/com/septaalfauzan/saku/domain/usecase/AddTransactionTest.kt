@@ -1,5 +1,7 @@
 package com.septaalfauzan.saku.domain.usecase
 
+import com.septaalfauzan.saku.domain.importexport.ApplyResult
+import com.septaalfauzan.saku.domain.importexport.UndoSnapshot
 import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.DuplicateKey
 import com.septaalfauzan.saku.domain.model.Transaction
@@ -27,6 +29,10 @@ private class FakeTransactionRepository : TransactionRepository {
         withinStartMillis: Long,
         withinEndMillis: Long,
     ): Transaction? = null
+    override suspend fun getAll(): List<Transaction> = emptyList()
+    override suspend fun applyImport(changes: List<Transaction>): ApplyResult =
+        ApplyResult(0, 0, UndoSnapshot(emptyList(), emptyMap()))
+    override suspend fun undoImport(snapshot: UndoSnapshot) = Unit
 }
 
 class AddTransactionTest {

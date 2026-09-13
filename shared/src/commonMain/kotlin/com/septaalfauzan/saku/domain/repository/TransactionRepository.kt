@@ -1,5 +1,7 @@
 package com.septaalfauzan.saku.domain.repository
 
+import com.septaalfauzan.saku.domain.importexport.ApplyResult
+import com.septaalfauzan.saku.domain.importexport.UndoSnapshot
 import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.DuplicateKey
 import com.septaalfauzan.saku.domain.model.Transaction
@@ -19,4 +21,7 @@ interface TransactionRepository {
         withinStartMillis: Long,
         withinEndMillis: Long,
     ): Transaction?
+    suspend fun getAll(): List<Transaction>
+    suspend fun applyImport(changes: List<Transaction>): ApplyResult
+    suspend fun undoImport(snapshot: UndoSnapshot)
 }
