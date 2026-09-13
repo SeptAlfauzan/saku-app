@@ -16,6 +16,7 @@ import com.septaalfauzan.saku.data.repository.RemoteOcrRepository
 import com.septaalfauzan.saku.data.repository.RoomNotificationSettingsRepository
 import com.septaalfauzan.saku.data.repository.RoomTransactionRepository
 import com.septaalfauzan.saku.domain.importexport.ExportTransactions
+import com.septaalfauzan.saku.domain.importexport.ImportTransactions
 import com.septaalfauzan.saku.domain.repository.NotificationSettingsRepository
 import com.septaalfauzan.saku.domain.repository.OcrRepository
 import com.septaalfauzan.saku.domain.repository.TransactionRepository
@@ -46,6 +47,7 @@ import com.septaalfauzan.saku.ui.addedit.AddEditTransactionViewModel
 import com.septaalfauzan.saku.ui.dashboard.DashboardViewModel
 import com.septaalfauzan.saku.ui.detail.TransactionDetailViewModel
 import com.septaalfauzan.saku.ui.importexport.ExportCsvViewModel
+import com.septaalfauzan.saku.ui.importexport.ImportCsvViewModel
 import com.septaalfauzan.saku.ui.review.ReviewQueueViewModel
 import com.septaalfauzan.saku.ui.scanreceipt.ScanReceiptViewmodel
 import com.septaalfauzan.saku.ui.tracking.TrackingViewModel
@@ -98,6 +100,7 @@ val appModule = module {
     singleOf(::SetAutoConfirm)
     singleOf(::GetReceiptValue)
     singleOf(::ExportTransactions)
+    singleOf(::ImportTransactions)
 
     single { ParserRegistry() }
     single { NotificationParserEngine(get()) }
@@ -110,6 +113,7 @@ val appModule = module {
     viewModelOf(::ReviewQueueViewModel)
     viewModelOf(::ScanReceiptViewmodel)
     viewModelOf(::ExportCsvViewModel)
+    viewModelOf(::ImportCsvViewModel)
     viewModel { params ->
         TransactionDetailViewModel(get(), get(), params.getOrNull() ?: "")
     }

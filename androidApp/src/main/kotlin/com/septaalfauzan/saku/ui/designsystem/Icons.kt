@@ -13,9 +13,12 @@ import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.FlashOff
 import androidx.compose.material.icons.outlined.FlashOn
+import androidx.compose.material.icons.outlined.FlashOff
+import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -41,6 +44,8 @@ object SakuIcons {
     val ListenerDisabled: ImageVector = Icons.Outlined.NotificationsOff
     val FlashOn: ImageVector = Icons.Outlined.FlashOn
     val FlashOff: ImageVector = Icons.Outlined.FlashOff
+    val FileOpen: ImageVector = Icons.Outlined.FileOpen
+    val Save: ImageVector = Icons.Outlined.Save
     val Verified: ImageVector = Icons.Outlined.Verified
     val Receipt: ImageVector = Icons.Outlined.Receipt
     val Search: ImageVector = Icons.Outlined.Search

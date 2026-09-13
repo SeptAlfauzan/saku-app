@@ -154,4 +154,24 @@
     <string name="export.done_title">Export Selesai</string>
     <string name="export.done_body">%1$d transaksi diekspor.</string>
     <string name="export.excluded_note">%1$d transaksi transfer tidak disertakan.</string>
+
+    <!-- Import -->
+    <string name="import.title">Impor Transaksi</string>
+    <string name="import.pick_title">Pilih File CSV</string>
+    <string name="import.pick_body">Pilih file CSV berformat BigPickle untuk diimpor.</string>
+    <string name="import.pick_button">Pilih File</string>
+    <string name="import.processing">Memproses…</string>
+    <string name="import.preview_title">Pratinjau Impor</string>
+    <string name="import.preview.summary_new">Baru</string>
+    <string name="import.preview.summary_update">Diperbarui</string>
+    <string name="import.preview.summary_duplicate">Duplikat</string>
+    <string name="import.preview.blocked">Tidak dapat mengimpor — file memiliki %1$d kesalahan.</string>
+    <string name="import.preview.error_row">Baris %1$d · %2$s · %3$s</string>
+    <string name="import.skip_duplicates">Lewati duplikat</string>
+    <string name="import.confirm_button">Impor %1$d Transaksi</string>
+    <string name="import.done_title">Impor Selesai</string>
+    <string name="import.done_body">%1$d baru · %2$d diperbarui</string>
+    <string name="import.done_skipped">%1$d duplikat dilewati.</string>
+    <string name="import.undo">Batalkan Impor</string>
+    <string name="import.failed_title">Gagal Mengimpor</string>
 </resources>
