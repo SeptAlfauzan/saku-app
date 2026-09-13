@@ -158,7 +158,7 @@
     <!-- Import -->
     <string name="import.title">Impor Transaksi</string>
     <string name="import.pick_title">Pilih File CSV</string>
-    <string name="import.pick_body">Pilih file CSV berformat BigPickle untuk diimpor.</string>
+    <string name="import.pick_body">Pilih file CSV sesuai format ekspor Saku untuk diimpor.</string>
     <string name="import.pick_button">Pilih File</string>
     <string name="import.processing">Memproses…</string>
     <string name="import.preview_title">Pratinjau Impor</string>
