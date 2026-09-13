@@ -7,7 +7,6 @@ import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.repository.NotificationSettingsRepository
 import com.septaalfauzan.saku.domain.repository.TransactionRepository
 import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 
 class ImportTransactions(
