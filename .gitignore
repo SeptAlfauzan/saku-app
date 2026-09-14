@@ -20,6 +20,6 @@ androidApp/release/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
-.github
+#.github
 .superpowers/
 docs/superpowers/
