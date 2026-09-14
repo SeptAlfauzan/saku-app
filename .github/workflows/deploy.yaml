@@ -6,6 +6,39 @@ on:
       - 'v*'
 
 jobs:
+  build-and-push-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Verify Docker login
+        run: |
+          echo "Logged in as:"
+          docker info
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64,linux/arm/v7
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/saku-api:${{ github.ref_name }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/saku-api:latest
+          push: true
+
   build-android:
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +58,17 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
 
+      - name: Checksum decoded keystore
+        run: sha256sum release.keystore
+
+      - name: Verify signing inputs
+        run: |
+          test -s release.keystore || { echo "::error::release.keystore is missing or empty — check ANDROID_KEYSTORE_BASE64"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" || { echo "::error::ANDROID_KEYSTORE_PASSWORD secret is not set"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEY_ALIAS }}" || { echo "::error::ANDROID_KEY_ALIAS secret is not set"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEY_PASSWORD }}" || { echo "::error::ANDROID_KEY_PASSWORD secret is not set"; exit 1; }
+          echo "Signing inputs look present."
+
       - name: Set version info
         id: version
         run: |
@@ -43,6 +87,16 @@ jobs:
           ./gradlew :androidApp:bundleRelease \
             -PversionCode=${{ steps.version.outputs.version_code }} \
             -PversionName=${{ steps.version.outputs.version_name }}
+
+      - name: List build outputs (debug)
+        run: find . -path '*/outputs/apk/*' -o -path '*/outputs/bundle/*'
+
+      - name: Verify AAB is signed
+        run: |
+          AAB=$(find . -path '*/outputs/bundle/release/*.aab' | head -n1)
+          test -n "$AAB" || { echo "::error::No AAB found in outputs/bundle/release"; exit 1; }
+          jarsigner -verify "$AAB" || { echo "::error::$AAB is not signed — check your signingConfig in build.gradle.kts"; exit 1; }
+          echo "$AAB is signed."
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
