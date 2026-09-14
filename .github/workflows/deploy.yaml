@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  build-and-publish-android:
+  build-android:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,14 +44,26 @@ jobs:
             -PversionCode=${{ steps.version.outputs.version_code }} \
             -PversionName=${{ steps.version.outputs.version_name }}
 
-      - name: List build outputs (debug)
-        run: find . -path '*/outputs/bundle/*'
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: androidApp/build/outputs/bundle/release/*.aab
+
+  publish-android:
+    needs: build-android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download AAB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-aab
 
       - name: Upload to Play Console (internal track)
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.septaalfauzan.saku
-          releaseFiles: androidApp/build/outputs/bundle/release/*.aab
+          releaseFiles: '*.aab'
           track: internal
           status: completed
