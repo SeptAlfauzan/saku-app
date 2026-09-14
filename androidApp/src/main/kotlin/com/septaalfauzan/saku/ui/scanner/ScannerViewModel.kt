@@ -1,5 +1,6 @@
 package com.septaalfauzan.saku.ui.scanner
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.codec.binary.Base64
@@ -12,6 +13,7 @@ import com.septaalfauzan.saku.domain.usecase.AddTransaction
 import com.septaalfauzan.saku.domain.usecase.GetReceiptValue
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
 import com.septaalfauzan.saku.ui.state.StateUi
+import com.septaalfauzan.saku.util.ImageCompressor
 import com.septaalfauzan.saku.util.Logger
 import com.septaalfauzan.saku.util.parseReceiptDate
 import kotlin.time.Clock
@@ -51,13 +53,13 @@ class ScannerViewModel(
     private val _event = MutableStateFlow<ScannerEvent?>(null)
     val event: StateFlow<ScannerEvent?> = _event.asStateFlow()
 
-    fun onCaptured(path: String) {
+    fun onCaptured(path: String, context: Context) {
         _state.value = _state.value.copy(phase = ScannerPhase.SCANNING, capturedPath = path)
         viewModelScope.launch {
             delay(1500)
             _state.value = _state.value.copy(phase = ScannerPhase.RESULT)
         }
-        scanReceipt(path)
+        scanReceipt(path, context)
     }
 
     fun retake() {
@@ -114,13 +116,17 @@ class ScannerViewModel(
         return Base64.encodeBase64URLSafeString(bytes)
     }
 
-    fun scanReceipt(imagePath: String) {
+    fun scanReceipt(imagePath: String, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _scanOcrState.value = StateUi.Loading
-
+                val byteImage = File(imagePath).readBytes()
+                val compressedImage = ImageCompressor.compress(byteImage)
+                val compressedFileTemp = File.createTempFile("receipt_", ".jpeg", context.cacheDir).also {file ->
+                    file.writeBytes(compressedImage.bytes)
+                }
                 val result = getReceiptValue.invoke(
-                    fileToBase64(imagePath),
+                    fileToBase64(compressedFileTemp.path),
                     "image/jpeg"
                 )
                 _scanOcrState.value = StateUi.Success(result)
