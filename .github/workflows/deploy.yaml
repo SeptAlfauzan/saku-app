@@ -33,22 +33,25 @@ jobs:
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
 
-      - name: Build release APK
+      - name: Build release AAB
         env:
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          ./gradlew :androidApp:assembleRelease \
+          ./gradlew :androidApp:bundleRelease \
             -PversionCode=${{ steps.version.outputs.version_code }} \
             -PversionName=${{ steps.version.outputs.version_name }}
+
+      - name: List build outputs (debug)
+        run: find . -path '*/outputs/bundle/*'
 
       - name: Upload to Play Console (internal track)
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.septaalfauzan.saku
-          releaseFiles: androidApp/build/outputs/apk/release/androidApp-release.apk
+          releaseFiles: androidApp/build/outputs/bundle/release/*.aab
           track: internal
           status: completed
