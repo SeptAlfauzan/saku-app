@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -53,6 +54,7 @@ import com.septaalfauzan.saku.ui.components.EmptyState
 import com.septaalfauzan.saku.ui.components.LabelCaps
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
+import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
@@ -68,181 +70,210 @@ fun ConfigureParserRoute(onBack: () -> Unit) {
     val type = SakuTheme.type
     val focusManager = LocalFocusManager.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = SakuDp.screenEdgePadding),
-    ) {
-        Spacer(Modifier.height(SakuDp.spaceSm))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(SakuIcons.Back, contentDescription = stringResource(R.string.common_back), tint = palette.ink)
-            }
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.configure_title), style = type.headlineLg, color = palette.ink)
-                Text(stringResource(R.string.configure_subtitle), style = type.bodySm, color = palette.slate)
-            }
-            if (state.selectedPackage != null) {
-                TextButton(onClick = { viewModel.onSave(); focusManager.clearFocus() }) {
-                    Text(stringResource(R.string.configure_done), color = palette.crimson, style = type.labelMd)
+    Scaffold(
+        topBar = {
+            TopBar(
+                title = stringResource(R.string.configure_title),
+                subTitle = stringResource(R.string.configure_subtitle),
+                onBack = onBack,
+                action = {
+                    if (state.selectedPackage != null) {
+                        TextButton(onClick = { viewModel.onSave(); focusManager.clearFocus() }) {
+                            Text(
+                                stringResource(R.string.configure_done),
+                                color = palette.crimson,
+                                style = type.labelMd
+                            )
+                        }
+                    }
                 }
-            }
+
+            )
         }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = SakuDp.screenEdgePadding),
+        ) {
+            Spacer(Modifier.height(SakuDp.spaceMd))
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = { viewModel.onSearchQueryChanged(it) },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = {
+                    Text(
+                        stringResource(R.string.configure_search_hint),
+                        style = type.bodyMd
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        SakuIcons.Search,
+                        contentDescription = null,
+                        tint = palette.slate
+                    )
+                },
+                shape = RoundedCornerShape(28.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = palette.chalk,
+                    focusedContainerColor = palette.chalk,
+                ),
+                singleLine = true,
+            )
 
-        Spacer(Modifier.height(SakuDp.spaceMd))
-
-        OutlinedTextField(
-            value = state.searchQuery,
-            onValueChange = { viewModel.onSearchQueryChanged(it) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(R.string.configure_search_hint), style = type.bodyMd) },
-            leadingIcon = { Icon(SakuIcons.Search, contentDescription = null, tint = palette.slate) },
-            shape = RoundedCornerShape(28.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = palette.chalk,
-                focusedContainerColor = palette.chalk,
-            ),
-            singleLine = true,
-        )
-
-        if (state.filteredApps.isNotEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = palette.canvas),
-            ) {
-                LazyColumn(modifier = Modifier.heightIn(max = 240.dp)) {
-                    items(state.filteredApps) { app ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { viewModel.onSelectApp(app.packageName) }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column {
-                                Text(app.label, style = type.labelMd, color = palette.ink)
-                                Text(app.packageName, style = type.bodySm, color = palette.slate)
+            if (state.filteredApps.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = palette.canvas),
+                ) {
+                    LazyColumn(modifier = Modifier.heightIn(max = 240.dp)) {
+                        items(state.filteredApps) { app ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.onSelectApp(app.packageName) }
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column {
+                                    Text(app.label, style = type.labelMd, color = palette.ink)
+                                    Text(
+                                        app.packageName,
+                                        style = type.bodySm,
+                                        color = palette.slate
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        Spacer(Modifier.height(SakuDp.spaceMd))
+            Spacer(Modifier.height(SakuDp.spaceMd))
 
-        if (state.selectedPackage != null) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = palette.canvas),
-            ) {
-                Row(
-                    modifier = Modifier.padding(SakuDp.spaceMd),
-                    verticalAlignment = Alignment.CenterVertically,
+            if (state.selectedPackage != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = palette.canvas),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(palette.ink, RoundedCornerShape(12.dp)),
-                        contentAlignment = Alignment.Center,
+                    Row(
+                        modifier = Modifier.padding(SakuDp.spaceMd),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            state.selectedLabel.take(2).uppercase(),
-                            color = palette.canvas,
-                            style = type.labelMd,
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(palette.ink, RoundedCornerShape(12.dp)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                state.selectedLabel.take(2).uppercase(),
+                                color = palette.canvas,
+                                style = type.labelMd,
+                            )
+                        }
+                        Spacer(Modifier.width(SakuDp.spaceSm))
+                        Column(Modifier.weight(1f)) {
+                            Text(state.selectedLabel, style = type.headlineSm, color = palette.ink)
+                            Text(
+                                state.selectedPackage!!,
+                                style = type.bodySm,
+                                color = palette.slate
+                            )
+                        }
+                        TextButton(onClick = { viewModel.onDismissApp() }) {
+                            Text(
+                                stringResource(R.string.configure_change),
+                                style = type.labelMd,
+                                color = palette.slate
+                            )
+                        }
                     }
-                    Spacer(Modifier.width(SakuDp.spaceSm))
-                    Column(Modifier.weight(1f)) {
-                        Text(state.selectedLabel, style = type.headlineSm, color = palette.ink)
-                        Text(state.selectedPackage!!, style = type.bodySm, color = palette.slate)
-                    }
-                    TextButton(onClick = { viewModel.onDismissApp() }) {
-                        Text(stringResource(R.string.configure_change), style = type.labelMd, color = palette.slate)
-                    }
+                }
+
+                Spacer(Modifier.height(SakuDp.spaceMd))
+
+                KeywordSection(
+                    title = stringResource(R.string.configure_expense_keywords),
+                    description = stringResource(R.string.configure_expense_desc),
+                    dotColor = palette.crimson,
+                    keywords = state.expenseWords,
+                    onAdd = { viewModel.onAddKeyword(KeywordType.EXPENSE, it) },
+                    onRemove = { viewModel.onRemoveKeyword(KeywordType.EXPENSE, it) },
+                )
+                Spacer(Modifier.height(SakuDp.spaceSm))
+                KeywordSection(
+                    title = stringResource(R.string.configure_income_keywords),
+                    description = stringResource(R.string.configure_income_desc),
+                    dotColor = palette.slate,
+                    keywords = state.incomeWords,
+                    onAdd = { viewModel.onAddKeyword(KeywordType.INCOME, it) },
+                    onRemove = { viewModel.onRemoveKeyword(KeywordType.INCOME, it) },
+                )
+                Spacer(Modifier.height(SakuDp.spaceSm))
+                KeywordSection(
+                    title = stringResource(R.string.configure_merchant_prefixes),
+                    description = stringResource(R.string.configure_merchant_desc),
+                    dotColor = palette.slate,
+                    keywords = state.merchantWords,
+                    onAdd = { viewModel.onAddKeyword(KeywordType.MERCHANT, it) },
+                    onRemove = { viewModel.onRemoveKeyword(KeywordType.MERCHANT, it) },
+                )
+
+                Spacer(Modifier.height(SakuDp.spaceMd))
+
+                LiveTestSection(
+                    text = state.testNotificationText,
+                    onTextChange = { viewModel.onTestTextChanged(it) },
+                    selectedPackage = state.selectedPackage!!,
+                    expenseWords = state.expenseWords,
+                    incomeWords = state.incomeWords,
+                    merchantWords = state.merchantWords,
+                )
+            } else {
+                EmptyState(
+                    title = stringResource(R.string.configure_select_app),
+                    body = stringResource(R.string.configure_select_app_body),
+                )
+            }
+
+            Spacer(Modifier.height(SakuDp.spaceMd))
+
+            LabelCaps(stringResource(R.string.configure_configured_apps), color = palette.slate)
+            Spacer(Modifier.height(SakuDp.spaceXs))
+
+            val configuredSources = sources.filter { source ->
+                state.installedApps.any { it.packageName == source.packageName }
+            }
+
+            if (configuredSources.isEmpty()) {
+                EmptyState(
+                    title = stringResource(R.string.configure_no_apps),
+                    body = stringResource(R.string.configure_no_apps_body)
+                )
+            } else {
+                configuredSources.forEach { source ->
+                    ConfiguredAppRow(
+                        appName = state.installedApps.find { it.packageName == source.packageName }?.label
+                            ?: source.providerId,
+                        packageName = source.packageName,
+                        isSelected = source.packageName == state.selectedPackage,
+                        onClick = { viewModel.onSelectApp(source.packageName) },
+                        onDelete = { viewModel.onDeleteApp(source.packageName) },
+                    )
+                    Spacer(Modifier.height(4.dp))
                 }
             }
 
-            Spacer(Modifier.height(SakuDp.spaceMd))
-
-            KeywordSection(
-                title = stringResource(R.string.configure_expense_keywords),
-                description = stringResource(R.string.configure_expense_desc),
-                dotColor = palette.crimson,
-                keywords = state.expenseWords,
-                onAdd = { viewModel.onAddKeyword(KeywordType.EXPENSE, it) },
-                onRemove = { viewModel.onRemoveKeyword(KeywordType.EXPENSE, it) },
-            )
-            Spacer(Modifier.height(SakuDp.spaceSm))
-            KeywordSection(
-                title = stringResource(R.string.configure_income_keywords),
-                description = stringResource(R.string.configure_income_desc),
-                dotColor = palette.slate,
-                keywords = state.incomeWords,
-                onAdd = { viewModel.onAddKeyword(KeywordType.INCOME, it) },
-                onRemove = { viewModel.onRemoveKeyword(KeywordType.INCOME, it) },
-            )
-            Spacer(Modifier.height(SakuDp.spaceSm))
-            KeywordSection(
-                title = stringResource(R.string.configure_merchant_prefixes),
-                description = stringResource(R.string.configure_merchant_desc),
-                dotColor = palette.slate,
-                keywords = state.merchantWords,
-                onAdd = { viewModel.onAddKeyword(KeywordType.MERCHANT, it) },
-                onRemove = { viewModel.onRemoveKeyword(KeywordType.MERCHANT, it) },
-            )
-
-            Spacer(Modifier.height(SakuDp.spaceMd))
-
-            LiveTestSection(
-                text = state.testNotificationText,
-                onTextChange = { viewModel.onTestTextChanged(it) },
-                selectedPackage = state.selectedPackage!!,
-                expenseWords = state.expenseWords,
-                incomeWords = state.incomeWords,
-                merchantWords = state.merchantWords,
-            )
-        } else {
-            EmptyState(
-                title = stringResource(R.string.configure_select_app),
-                body = stringResource(R.string.configure_select_app_body),
-            )
+            Spacer(Modifier.height(SakuDp.bottomSafeClearance))
         }
-
-        Spacer(Modifier.height(SakuDp.spaceMd))
-
-        LabelCaps(stringResource(R.string.configure_configured_apps), color = palette.slate)
-        Spacer(Modifier.height(SakuDp.spaceXs))
-
-        val configuredSources = sources.filter { source ->
-            state.installedApps.any { it.packageName == source.packageName }
-        }
-
-        if (configuredSources.isEmpty()) {
-            EmptyState(title = stringResource(R.string.configure_no_apps), body = stringResource(R.string.configure_no_apps_body))
-        } else {
-            configuredSources.forEach { source ->
-                ConfiguredAppRow(
-                    appName = state.installedApps.find { it.packageName == source.packageName }?.label
-                        ?: source.providerId,
-                    packageName = source.packageName,
-                    isSelected = source.packageName == state.selectedPackage,
-                    onClick = { viewModel.onSelectApp(source.packageName) },
-                    onDelete = { viewModel.onDeleteApp(source.packageName) },
-                )
-                Spacer(Modifier.height(4.dp))
-            }
-        }
-
-        Spacer(Modifier.height(SakuDp.bottomSafeClearance))
     }
 }
 
@@ -283,7 +314,11 @@ private fun KeywordSection(
                     }
                     Text(description, style = type.bodySm, color = palette.slate)
                 }
-                Text(stringResource(R.string.configure_rules_count, keywords.size), style = type.labelCaps, color = palette.slate)
+                Text(
+                    stringResource(R.string.configure_rules_count, keywords.size),
+                    style = type.labelCaps,
+                    color = palette.slate
+                )
             }
 
             if (keywords.isNotEmpty()) {
@@ -313,7 +348,12 @@ private fun KeywordSection(
                     value = inputText,
                     onValueChange = { inputText = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text(stringResource(R.string.configure_add_keyword_hint), style = type.bodySm) },
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.configure_add_keyword_hint),
+                            style = type.bodySm
+                        )
+                    },
                     shape = RoundedCornerShape(20.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -405,7 +445,11 @@ private fun LiveTestSection(
             ) {
                 LabelCaps(stringResource(R.string.configure_live_simulation))
                 if (testResult?.matched == true) {
-                    Text(stringResource(R.string.configure_auto_matched), style = type.labelMd, color = palette.crimson)
+                    Text(
+                        stringResource(R.string.configure_auto_matched),
+                        style = type.labelMd,
+                        color = palette.crimson
+                    )
                 }
             }
 
@@ -415,7 +459,12 @@ private fun LiveTestSection(
                 value = text,
                 onValueChange = onTextChange,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.configure_paste_hint), style = type.bodySm) },
+                placeholder = {
+                    Text(
+                        stringResource(R.string.configure_paste_hint),
+                        style = type.bodySm
+                    )
+                },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = palette.canvas,
@@ -429,13 +478,28 @@ private fun LiveTestSection(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    TestResultChip(stringResource(R.string.configure_type), testResult.type ?: "-", Modifier.weight(1f))
-                    TestResultChip(stringResource(R.string.common_amount), testResult.amount?.let { "Rp $it" } ?: "-", Modifier.weight(1f))
-                    TestResultChip(stringResource(R.string.common_merchant), testResult.merchant ?: "-", Modifier.weight(1f))
+                    TestResultChip(
+                        stringResource(R.string.configure_type),
+                        testResult.type ?: "-",
+                        Modifier.weight(1f)
+                    )
+                    TestResultChip(
+                        stringResource(R.string.common_amount),
+                        testResult.amount?.let { "Rp $it" } ?: "-",
+                        Modifier.weight(1f))
+                    TestResultChip(
+                        stringResource(R.string.common_merchant),
+                        testResult.merchant ?: "-",
+                        Modifier.weight(1f)
+                    )
                 }
             } else if (testResult != null && !testResult.matched) {
                 Spacer(Modifier.height(SakuDp.spaceXs))
-                Text(stringResource(R.string.configure_no_match), style = type.labelMd, color = palette.slate)
+                Text(
+                    stringResource(R.string.configure_no_match),
+                    style = type.labelMd,
+                    color = palette.slate
+                )
             }
         }
     }
@@ -506,7 +570,11 @@ private fun ConfiguredAppRow(
                 Text(packageName, style = type.bodySm, color = palette.slate)
             }
             IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(SakuIcons.Delete, contentDescription = stringResource(R.string.common_delete), tint = palette.slate)
+                Icon(
+                    SakuIcons.Delete,
+                    contentDescription = stringResource(R.string.common_delete),
+                    tint = palette.slate
+                )
             }
         }
     }

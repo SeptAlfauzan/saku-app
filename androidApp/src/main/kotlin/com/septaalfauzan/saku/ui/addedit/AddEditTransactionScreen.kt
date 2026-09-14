@@ -1,6 +1,7 @@
 package com.septaalfauzan.saku.ui.addedit
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -44,6 +46,7 @@ import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import androidx.compose.ui.res.stringResource
 import com.septaalfauzan.saku.R
+import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.util.formatShortDate
 import java.time.Instant
 import java.time.ZoneId
@@ -72,103 +75,151 @@ fun AddEditRoute(
         if (event != null) viewModel.consumeEvent()
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(bottom = SakuDp.bottomSafeClearance),
-    ) {
-        item { Spacer(Modifier.height(SakuDp.spaceSm)) }
-        item {
-            Text(
-                if (transactionId != null) stringResource(R.string.addedit_edit_title) else stringResource(R.string.addedit_add_title),
-                style = SakuTheme.type.headlineLg,
-                color = SakuTheme.palette.ink,
+    Scaffold(
+        topBar = {
+            TopBar(
+                title =
+                    if (transactionId != null) stringResource(R.string.addedit_edit_title) else stringResource(
+                        R.string.addedit_add_title
+                    ),
+                onBack = onDone,
+                action = {}
             )
         }
-        item {
-            TypeSelector(type = state.type, onSelect = viewModel::updateType)
-        }
-        item {
-            PillBackplate {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Rp", style = SakuTheme.type.numericTable, color = SakuTheme.palette.slate)
-                    Spacer(Modifier.width(SakuDp.spaceSm))
+
+
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(horizontal = SakuDp.screenEdgePadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = SakuDp.bottomSafeClearance),
+        ) {
+//            item { Spacer(Modifier.height(SakuDp.spaceSm)) }
+//            item {
+//                Text(
+//                    if (transactionId != null) stringResource(R.string.addedit_edit_title) else stringResource(
+//                        R.string.addedit_add_title
+//                    ),
+//                    style = SakuTheme.type.headlineLg,
+//                    color = SakuTheme.palette.ink,
+//                )
+//            }
+            item {
+                TypeSelector(type = state.type, onSelect = viewModel::updateType)
+            }
+            item {
+                PillBackplate {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Rp",
+                            style = SakuTheme.type.numericTable,
+                            color = SakuTheme.palette.slate
+                        )
+                        Spacer(Modifier.width(SakuDp.spaceSm))
+                        BasicTextField(
+                            value = state.amountInput,
+                            onValueChange = viewModel::updateAmount,
+                            textStyle = SakuTheme.type.displayCurrencyMobile.copy(
+                                color = SakuTheme.palette.ink,
+                                fontFeatureSettings = "tnum",
+                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+                state.amountError?.let {
+                    Text(
+                        it,
+                        style = SakuTheme.type.bodySm,
+                        color = SakuTheme.palette.crimson,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+            item {
+                Text(
+                    stringResource(R.string.addedit_category),
+                    style = SakuTheme.type.labelCaps,
+                    color = SakuTheme.palette.slate
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
+                    items(state.categories, key = { it.id }) { category ->
+                        FilterChip(
+                            label = category.name,
+                            selected = category.id == state.categoryId,
+                            onClick = { viewModel.updateCategory(category.id) },
+                        )
+                    }
+                }
+                state.categoryError?.let {
+                    Text(
+                        it,
+                        style = SakuTheme.type.bodySm,
+                        color = SakuTheme.palette.crimson,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+            item {
+                PillBackplate {
                     BasicTextField(
-                        value = state.amountInput,
-                        onValueChange = viewModel::updateAmount,
-                        textStyle = SakuTheme.type.displayCurrencyMobile.copy(
-                            color = SakuTheme.palette.ink,
-                            fontFeatureSettings = "tnum",
-                        ),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        value = state.merchant,
+                        onValueChange = viewModel::updateMerchant,
+                        textStyle = SakuTheme.type.bodyLg.copy(color = SakuTheme.palette.ink),
+                        decorationBox = { inner ->
+                            if (state.merchant.isEmpty()) {
+                                Text(
+                                    stringResource(R.string.addedit_merchant_hint),
+                                    style = SakuTheme.type.bodyLg,
+                                    color = SakuTheme.palette.slate
+                                )
+                            }
+                            inner()
+                        },
                         singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
-            state.amountError?.let {
-                Text(it, style = SakuTheme.type.bodySm, color = SakuTheme.palette.crimson, modifier = Modifier.padding(top = 4.dp))
-            }
-        }
-        item {
-            Text(stringResource(R.string.addedit_category), style = SakuTheme.type.labelCaps, color = SakuTheme.palette.slate)
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
-                items(state.categories, key = { it.id }) { category ->
-                    FilterChip(
-                        label = category.name,
-                        selected = category.id == state.categoryId,
-                        onClick = { viewModel.updateCategory(category.id) },
+            item {
+                PillBackplate {
+                    BasicTextField(
+                        value = state.note,
+                        onValueChange = viewModel::updateNote,
+                        textStyle = SakuTheme.type.bodyLg.copy(color = SakuTheme.palette.ink),
+                        decorationBox = { inner ->
+                            if (state.note.isEmpty()) {
+                                Text(
+                                    stringResource(R.string.addedit_note_hint),
+                                    style = SakuTheme.type.bodyLg,
+                                    color = SakuTheme.palette.slate
+                                )
+                            }
+                            inner()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
-            state.categoryError?.let {
-                Text(it, style = SakuTheme.type.bodySm, color = SakuTheme.palette.crimson, modifier = Modifier.padding(top = 4.dp))
+            item {
+                DateField(state.occurredAtMillis, viewModel::updateDate)
             }
-        }
-        item {
-            PillBackplate {
-                BasicTextField(
-                    value = state.merchant,
-                    onValueChange = viewModel::updateMerchant,
-                    textStyle = SakuTheme.type.bodyLg.copy(color = SakuTheme.palette.ink),
-                    decorationBox = { inner ->
-                        if (state.merchant.isEmpty()) {
-                            Text(stringResource(R.string.addedit_merchant_hint), style = SakuTheme.type.bodyLg, color = SakuTheme.palette.slate)
-                        }
-                        inner()
-                    },
-                    singleLine = true,
+            item {
+                PillButton(
+                    text = if (transactionId != null) stringResource(R.string.addedit_update) else stringResource(
+                        R.string.addedit_save
+                    ),
+                    onClick = viewModel::save,
+                    enabled = state.canSave,
                     modifier = Modifier.fillMaxWidth(),
+                    variant = if (state.type == TransactionType.EXPENSE) PillButtonVariant.ACCENT else PillButtonVariant.PRIMARY,
                 )
             }
-        }
-        item {
-            PillBackplate {
-                BasicTextField(
-                    value = state.note,
-                    onValueChange = viewModel::updateNote,
-                    textStyle = SakuTheme.type.bodyLg.copy(color = SakuTheme.palette.ink),
-                    decorationBox = { inner ->
-                        if (state.note.isEmpty()) {
-                            Text(stringResource(R.string.addedit_note_hint), style = SakuTheme.type.bodyLg, color = SakuTheme.palette.slate)
-                        }
-                        inner()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-        item {
-            DateField(state.occurredAtMillis, viewModel::updateDate)
-        }
-        item {
-            PillButton(
-                text = if (transactionId != null) stringResource(R.string.addedit_update) else stringResource(R.string.addedit_save),
-                onClick = viewModel::save,
-                enabled = state.canSave,
-                modifier = Modifier.fillMaxWidth(),
-                variant = if (state.type == TransactionType.EXPENSE) PillButtonVariant.ACCENT else PillButtonVariant.PRIMARY,
-            )
         }
     }
 }
@@ -179,7 +230,10 @@ private fun TypeSelector(
     onSelect: (TransactionType) -> Unit,
 ) {
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-        val options = listOf(TransactionType.EXPENSE to stringResource(R.string.common_expense), TransactionType.INCOME to stringResource(R.string.common_income))
+        val options = listOf(
+            TransactionType.EXPENSE to stringResource(R.string.common_expense),
+            TransactionType.INCOME to stringResource(R.string.common_income)
+        )
         options.forEachIndexed { index, (value, label) ->
             SegmentedButton(
                 selected = type == value,
@@ -225,7 +279,9 @@ private fun DateField(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.common_cancel)) }
+                TextButton(onClick = {
+                    showPicker = false
+                }) { Text(stringResource(R.string.common_cancel)) }
             },
         ) {
             DatePicker(state = pickerState)
@@ -236,10 +292,18 @@ private fun DateField(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(stringResource(R.string.common_date), style = SakuTheme.type.labelCaps, color = SakuTheme.palette.slate)
+        Text(
+            stringResource(R.string.common_date),
+            style = SakuTheme.type.labelCaps,
+            color = SakuTheme.palette.slate
+        )
         Spacer(Modifier.width(12.dp))
         TextButton(onClick = { showPicker = true }) {
-            Text(formatShortDate(occurredAtMillis), style = SakuTheme.type.labelMd, color = SakuTheme.palette.crimson)
+            Text(
+                formatShortDate(occurredAtMillis),
+                style = SakuTheme.type.labelMd,
+                color = SakuTheme.palette.crimson
+            )
         }
     }
 }

@@ -129,8 +129,8 @@ fun App() {
                 ) {
                     FloatingActionButton(
                         containerColor = SakuTheme.palette.ink,
-                        contentColor = if(isSystemInDarkTheme()) SakuTheme.palette.crimson else Color.White,
-                    onClick = {
+                        contentColor = if (isSystemInDarkTheme()) SakuTheme.palette.crimson else Color.White,
+                        onClick = {
                             showScanSheet = true
                         }
                     ) {
@@ -145,9 +145,11 @@ fun App() {
             }
         ) { _ ->
 
-            Box(Modifier
-                .fillMaxSize()
-                .padding(top = 24.dp)) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = 24.dp)
+            ) {
                 NavHost(
                     navController = navController,
                     startDestination = Routes.DASHBOARD,
@@ -168,6 +170,7 @@ fun App() {
                             onOpen = { id -> navController.navigate(Routes.detail(id)) },
                             onAdd = { navController.navigate(Routes.ADD) },
                             onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                            onBack = { navController.popBackStack() }
                         )
                     }
                     composable(
@@ -207,6 +210,7 @@ fun App() {
                                 transactionId = id,
                                 onEdit = { navController.navigate(Routes.edit(id)) },
                                 onDeleted = { navController.popBackStack() },
+                                onBack = { navController.popBackStack() },
                             )
                         }
                     }

@@ -3,6 +3,7 @@ package com.septaalfauzan.saku.ui.tracking
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -34,6 +36,7 @@ import com.septaalfauzan.saku.ui.components.EmptyState
 import com.septaalfauzan.saku.ui.components.LabelCaps
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
+import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
@@ -54,79 +57,110 @@ fun TrackingRoute(onBack: (() -> Unit)?, onConfigureParser: (() -> Unit)? = null
     val scrollState = rememberScrollState()
 
 
-    Column(Modifier.fillMaxSize().padding(horizontal = SakuDp.screenEdgePadding).verticalScroll(scrollState)) {
-        Spacer(Modifier.height(SakuDp.spaceSm))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (onBack != null) {
-                IconButton(onClick = onBack) {
-                    Icon(SakuIcons.Back, contentDescription = stringResource(R.string.common_back), tint = palette.ink)
-                }
-            }
-            Text(
-                if (onBack != null) stringResource(R.string.tracking_automated) else stringResource(R.string.tracking_rules),
-                style = type.headlineLg,
-                color = palette.ink,
+    Scaffold(
+        topBar = {
+            TopBar(
+                title = if (onBack != null) stringResource(R.string.tracking_automated) else stringResource(
+                    R.string.tracking_rules
+                ),
+                onBack = { if (onBack != null) onBack() },
+                action = {}
             )
         }
-        Spacer(Modifier.height(SakuDp.spaceMd))
-
+    ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(palette.canvas, RoundedCornerShape(28.dp))
-                .border(1.dp, palette.hairline, RoundedCornerShape(28.dp))
-                .padding(SakuDp.spaceMd),
-            verticalArrangement = Arrangement.spacedBy(SakuDp.spaceSm),
+            Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(horizontal = SakuDp.screenEdgePadding)
+                .verticalScroll(scrollState)
         ) {
-            Text(
-                stringResource(R.string.tracking_intro),
-                style = type.bodyMd,
-                color = palette.slate,
-            )
-            if (accessGranted) {
-                Text(stringResource(R.string.tracking_access_granted), style = type.labelCaps, color = palette.crimson)
-            } else {
-                Text(stringResource(R.string.tracking_access_not_granted), style = type.labelCaps, color = palette.crimson)
-                PillButton(
-                    stringResource(R.string.tracking_enable_access),
-                    { NotificationAccessManager.openSettings(context) },
-                    modifier = Modifier.fillMaxWidth(),
-                    variant = PillButtonVariant.PRIMARY,
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(palette.canvas, RoundedCornerShape(28.dp))
+                    .border(1.dp, palette.hairline, RoundedCornerShape(28.dp))
+                    .padding(SakuDp.spaceMd),
+                verticalArrangement = Arrangement.spacedBy(SakuDp.spaceSm),
+            ) {
+                Text(
+                    stringResource(R.string.tracking_intro),
+                    style = type.bodyMd,
+                    color = palette.slate,
                 )
-            }
-        }
-
-        Spacer(Modifier.height(SakuDp.spaceMd))
-        RuleRow(stringResource(R.string.tracking_automated), state.trackingEnabled, viewModel::toggleTrackingEnabled)
-        RuleRow(stringResource(R.string.tracking_auto_confirm), state.autoConfirm, viewModel::toggleAutoConfirm)
-
-        Spacer(Modifier.height(SakuDp.spaceMd))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            LabelCaps(stringResource(R.string.tracking_monitored_apps), color = palette.slate)
-            if (onConfigureParser != null) {
-                TextButton(onClick = onConfigureParser) {
-                    Text(stringResource(R.string.tracking_configure), style = type.labelMd, color = palette.crimson)
+                if (accessGranted) {
+                    Text(
+                        stringResource(R.string.tracking_access_granted),
+                        style = type.labelCaps,
+                        color = palette.crimson
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.tracking_access_not_granted),
+                        style = type.labelCaps,
+                        color = palette.crimson
+                    )
+                    PillButton(
+                        stringResource(R.string.tracking_enable_access),
+                        { NotificationAccessManager.openSettings(context) },
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = PillButtonVariant.PRIMARY,
+                    )
                 }
             }
-        }
-        Spacer(Modifier.height(SakuDp.spaceXs))
-        if (state.sources.isEmpty()) {
-            EmptyState(title = stringResource(R.string.tracking_no_apps), body = stringResource(R.string.tracking_no_apps_body))
-        } else {
-            state.sources.forEach { source ->
-                RuleRow(
-                    label = source.providerId,
-                    sublabel = source.packageName,
-                    checked = source.enabled,
-                    onCheckedChange = { enabled -> viewModel.toggleSourceEnabled(source.packageName, enabled) },
-                )
+
+            Spacer(Modifier.height(SakuDp.spaceMd))
+            RuleRow(
+                stringResource(R.string.tracking_automated),
+                state.trackingEnabled,
+                viewModel::toggleTrackingEnabled
+            )
+            RuleRow(
+                stringResource(R.string.tracking_auto_confirm),
+                state.autoConfirm,
+                viewModel::toggleAutoConfirm
+            )
+
+            Spacer(Modifier.height(SakuDp.spaceMd))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                LabelCaps(stringResource(R.string.tracking_monitored_apps), color = palette.slate)
+                if (onConfigureParser != null) {
+                    TextButton(onClick = onConfigureParser) {
+                        Text(
+                            stringResource(R.string.tracking_configure),
+                            style = type.labelMd,
+                            color = palette.crimson
+                        )
+                    }
+                }
             }
+            Spacer(Modifier.height(SakuDp.spaceXs))
+            if (state.sources.isEmpty()) {
+                EmptyState(
+                    title = stringResource(R.string.tracking_no_apps),
+                    body = stringResource(R.string.tracking_no_apps_body)
+                )
+            } else {
+                state.sources.forEach { source ->
+                    RuleRow(
+                        label = source.providerId,
+                        sublabel = source.packageName,
+                        checked = source.enabled,
+                        onCheckedChange = { enabled ->
+                            viewModel.toggleSourceEnabled(
+                                source.packageName,
+                                enabled
+                            )
+                        },
+                    )
+                }
+            }
+            Spacer(Modifier.height(SakuDp.bottomSafeClearance))
         }
-        Spacer(Modifier.height(SakuDp.bottomSafeClearance))
     }
 }
 
@@ -140,7 +174,9 @@ private fun RuleRow(
     val palette = SakuTheme.palette
     val type = SakuTheme.type
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,6 +38,7 @@ import com.septaalfauzan.saku.ui.components.FilterChip
 import com.septaalfauzan.saku.ui.components.LabelCaps
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
+import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
@@ -65,39 +67,31 @@ fun ImportCsvRoute(onBack: () -> Unit, vm: ImportCsvViewModel = koinViewModel())
     }
     val openPicker = { launcher.launch(importMimeTypes) }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = SakuDp.screenEdgePadding),
-    ) {
-        Spacer(Modifier.height(SakuDp.spaceLg))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs),
-        ) {
-            Icon(
-                SakuIcons.Back, contentDescription = stringResource(R.string.common_back),
-                tint = palette.ink,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable { onBack() }
-                    .padding(SakuDp.spaceXs),
-            )
-            Text(
-                stringResource(R.string.import_title),
-                style = type.headlineLg,
-                color = palette.ink
+    Scaffold(
+            topBar = {
+            TopBar(
+                title = stringResource(R.string.import_title),
+                action = {},
+                onBack = onBack
             )
         }
-
-        when (val current = state) {
-            is ImportCsvUiState.Idle -> ImportIdleContent(openPicker)
-            is ImportCsvUiState.Parsing -> ImportProcessingContent()
-            is ImportCsvUiState.Preview -> ImportPreviewContent(current, vm)
-            is ImportCsvUiState.Applying -> ImportProcessingContent()
-            is ImportCsvUiState.Done -> ImportDoneContent(current, vm, onBack)
-            is ImportCsvUiState.Failed -> ImportFailedContent(current, onBack)
+    ) { padding ->
+        Column(
+            Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = SakuDp.screenEdgePadding),
+        ) {
+            Spacer(Modifier.height(SakuDp.spaceLg))
+            when (val current = state) {
+                is ImportCsvUiState.Idle -> ImportIdleContent(openPicker)
+                is ImportCsvUiState.Parsing -> ImportProcessingContent()
+                is ImportCsvUiState.Preview -> ImportPreviewContent(current, vm)
+                is ImportCsvUiState.Applying -> ImportProcessingContent()
+                is ImportCsvUiState.Done -> ImportDoneContent(current, vm, onBack)
+                is ImportCsvUiState.Failed -> ImportFailedContent(current, onBack)
+            }
         }
     }
 }
