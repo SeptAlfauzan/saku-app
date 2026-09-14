@@ -6,39 +6,6 @@ on:
       - 'v*'
 
 jobs:
-  build-and-push-docker:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Verify Docker login
-        run: |
-          echo "Logged in as:"
-          docker info
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/arm64,linux/arm/v7
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/saku-api:${{ github.ref_name }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/saku-api:latest
-          push: true
-
   build-android:
     runs-on: ubuntu-latest
     steps:
