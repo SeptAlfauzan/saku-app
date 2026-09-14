@@ -133,4 +133,47 @@
     <string name="sheet.select_recording_method">Pilih metode pencatatan</string>
     <string name="sheet.scan_receipt">Pindai Struk</string>
     <string name="sheet.manual_entry">Input Manual</string>
+
+    <!-- Settings / Data -->
+    <string name="settings.title">Pengaturan</string>
+    <string name="settings.export_transactions">Ekspor Transaksi</string>
+    <string name="settings.export_body">Simpan CSV untuk dianalisis di Sheets/Excel</string>
+    <string name="settings.import_transactions">Impor Transaksi</string>
+    <string name="settings.import_body">Muat CSV untuk membuat/mengubah banyak transaksi</string>
+
+    <!-- Export -->
+    <string name="export.title">Ekspor Transaksi</string>
+    <string name="export.date_range">Rentang Tanggal</string>
+    <string name="export.type">Tipe</string>
+    <string name="export.category">Kategori</string>
+    <string name="export.all">Semua</string>
+    <string name="export.this_month">Bulan Ini</string>
+    <string name="export.this_year">Tahun Ini</string>
+    <string name="export.export_button">Ekspor CSV</string>
+    <string name="export.export_again">Ekspor Lagi</string>
+    <string name="export.done_title">Export Selesai</string>
+    <string name="export.done_body">%1$d transaksi diekspor.</string>
+    <string name="export.excluded_note">%1$d transaksi transfer tidak disertakan.</string>
+    <string name="export.failed">Ekspor gagal. Silakan coba lagi.</string>
+
+    <!-- Import -->
+    <string name="import.title">Impor Transaksi</string>
+    <string name="import.pick_title">Pilih File CSV</string>
+    <string name="import.pick_body">Pilih file CSV sesuai format ekspor Saku untuk diimpor.</string>
+    <string name="import.pick_button">Pilih File</string>
+    <string name="import.processing">Memproses…</string>
+    <string name="import.preview_title">Pratinjau Impor</string>
+    <string name="import.preview.summary_new">Baru</string>
+    <string name="import.preview.summary_update">Diperbarui</string>
+    <string name="import.preview.summary_duplicate">Duplikat</string>
+    <string name="import.preview.blocked">Tidak dapat mengimpor — file memiliki %1$d kesalahan.</string>
+    <string name="import.preview.error_row">Baris %1$d · %2$s · %3$s</string>
+    <string name="import.skip_duplicates">Lewati duplikat</string>
+    <string name="import.confirm_button">Impor %1$d Transaksi</string>
+    <string name="import.done_title">Impor Selesai</string>
+    <string name="import.done_body">%1$d baru · %2$d diperbarui</string>
+    <string name="import.done_skipped">%1$d duplikat dilewati.</string>
+    <string name="import.undo">Batalkan Impor</string>
+    <string name="import.failed_title">Gagal Mengimpor</string>
+    <string name="back_to_home">Kembali Ke Halaman Utama</string>
 </resources>

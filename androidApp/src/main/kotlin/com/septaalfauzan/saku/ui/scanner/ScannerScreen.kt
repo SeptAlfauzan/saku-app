@@ -20,20 +20,30 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ZoomIn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -50,6 +60,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -68,6 +79,7 @@ import org.koin.androidx.compose.koinViewModel
 import com.septaalfauzan.saku.ui.components.LabelCaps
 import com.septaalfauzan.saku.ui.components.PillButton
 import com.septaalfauzan.saku.ui.components.PillButtonVariant
+import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
@@ -76,6 +88,7 @@ import com.septaalfauzan.saku.util.formatRupiah
 import java.io.File
 import java.util.concurrent.Executor
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
     val context = LocalContext.current
@@ -109,29 +122,26 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
         }
 
     val onScanningState = scanOcrState == StateUi.Idle || scanOcrState == StateUi.Loading
-
+    var showFullImage by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(SakuIcons.ChevronLeft, contentDescription = stringResource(R.string.common_back), tint = Color.White)
+            TopBar(
+                title = stringResource(R.string.scanner_title),
+                onBack = onBack,
+                action = {
+                    if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING)
+                        IconButton(onClick = viewModel::toggleFlash) {
+                            Icon(
+                                if (state.flash == ScannerFlash.OFF) SakuIcons.FlashOff else SakuIcons.FlashOn,
+                                contentDescription = stringResource(
+                                    R.string.scanner_flash_format,
+                                    state.flash
+                                ),
+                                tint = Color.White,
+                            )
+                        }
                 }
-                Text(stringResource(R.string.scanner_title), style = type.headlineLg, color = Color.White)
-                Spacer(Modifier.weight(1f))
-                if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING)
-                    IconButton(onClick = viewModel::toggleFlash) {
-                        Icon(
-                            if (state.flash == ScannerFlash.OFF) SakuIcons.FlashOff else SakuIcons.FlashOn,
-                            contentDescription = stringResource(R.string.scanner_flash_format, state.flash),
-                            tint = Color.White,
-                        )
-                    }
-            }
+            )
         }
     ) { innerPadding ->
         Box(
@@ -146,7 +156,7 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                         CameraView(
                             flashMode = state.flash,
                             shutterToken = shutterToken,
-                            onCaptured = viewModel::onCaptured,
+                            onCaptured = { path -> viewModel.onCaptured(path, context) },
                         )
                     } else {
                         PermissionPrompt(onGrant = { permissionLauncher.launch(Manifest.permission.CAMERA) })
@@ -161,20 +171,34 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(SakuDp.spaceMd),
                     ) {
                         Spacer(Modifier.height(SakuDp.spaceSm))
-                        Text(stringResource(R.string.scanner_review_title), style = type.headlineSm, color = Color.White)
+                        Text(
+                            stringResource(R.string.scanner_review_title),
+                            style = type.headlineSm,
+                            color = Color.White
+                        )
                         state.capturedPath?.let { path ->
                             val bitmap =
                                 remember(path) { decodeWithExifRotation(path)?.asImageBitmap() }
                             if (bitmap != null) {
-                                Image(
-                                    bitmap = bitmap,
-                                    contentDescription = stringResource(R.string.scanner_captured_receipt),
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(220.dp)
-                                        .clip(RoundedCornerShape(20.dp)),
-                                )
+                                Box {
+                                    Image(
+                                        bitmap = bitmap,
+                                        contentDescription = stringResource(R.string.scanner_captured_receipt),
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(220.dp)
+                                            .clip(RoundedCornerShape(20.dp)),
+                                    )
+                                    IconButton(onClick = {
+                                        showFullImage = true
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.ZoomIn,
+                                            contentDescription = "Zoom button"
+                                        )
+                                    }
+                                }
                             }
                         }
                         Column(
@@ -187,7 +211,10 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                             val scanOcrResult = scanOcrState
                             when (scanOcrResult) {
                                 is StateUi.Error -> {
-                                    LabelCaps((scanOcrState as StateUi.Error).message, color = palette.crimson)
+                                    LabelCaps(
+                                        (scanOcrState as StateUi.Error).message,
+                                        color = palette.crimson
+                                    )
 
                                 }
 
@@ -202,10 +229,22 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
 
                                 is StateUi.Success<Receipt> -> {
                                     val data = scanOcrResult.data
-                                    LabelCaps(stringResource(R.string.scanner_detected), color = palette.crimson)
-                                    SampleField(stringResource(R.string.common_merchant), data.merchantName)
-                                    SampleField(stringResource(R.string.common_date), data.transactionDate)
-                                    SampleField(stringResource(R.string.scanner_provider), data.paymentMethod)
+                                    LabelCaps(
+                                        stringResource(R.string.scanner_detected),
+                                        color = palette.crimson
+                                    )
+                                    SampleField(
+                                        stringResource(R.string.common_merchant),
+                                        data.merchantName
+                                    )
+                                    SampleField(
+                                        stringResource(R.string.common_date),
+                                        data.transactionDate
+                                    )
+                                    SampleField(
+                                        stringResource(R.string.scanner_provider),
+                                        data.paymentMethod
+                                    )
                                     SampleField(
                                         stringResource(R.string.scanner_items),
                                         data.items.map {
@@ -216,8 +255,15 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                             })"
                                         }.joinToString(", "),
                                     )
-                                    SampleField(stringResource(R.string.scanner_discount), formatRupiah(data.discount))
-                                    SampleField(stringResource(R.string.scanner_total), formatRupiah(data.total), fontSize = 20.sp)
+                                    SampleField(
+                                        stringResource(R.string.scanner_discount),
+                                        formatRupiah(data.discount)
+                                    )
+                                    SampleField(
+                                        stringResource(R.string.scanner_total),
+                                        formatRupiah(data.total),
+                                        fontSize = 20.sp
+                                    )
                                 }
                             }
 
@@ -275,6 +321,40 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                     Text(msg, style = type.bodySm, color = Color.White)
                 }
             }
+            state.capturedPath?.let { path ->
+                val bitmap =
+                    remember(path) { decodeWithExifRotation(path)?.asImageBitmap() }
+                if (bitmap != null && showFullImage)
+                    BasicAlertDialog(
+                        onDismissRequest = {
+                            showFullImage = false
+                        },
+                        content = {
+                            Box {
+                                Image(
+                                    bitmap = bitmap,
+                                    contentDescription = stringResource(R.string.scanner_captured_receipt),
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight()
+                                        .scale(1.2f)
+                                        .horizontalScroll(rememberScrollState())
+                                        .verticalScroll(rememberScrollState())
+                                        .clip(RoundedCornerShape(20.dp)),
+                                )
+                                IconButton(onClick = {
+                                    showFullImage = false
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Close button"
+                                    )
+                                }
+                            }
+                        },
+                    )
+            }
         }
     }
 }
@@ -325,7 +405,11 @@ private fun PermissionPrompt(onGrant: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(stringResource(R.string.scanner_camera_permission_title), style = type.headlineSm, color = Color.White)
+        Text(
+            stringResource(R.string.scanner_camera_permission_title),
+            style = type.headlineSm,
+            color = Color.White
+        )
         Spacer(Modifier.height(SakuDp.spaceSm))
         Text(
             stringResource(R.string.scanner_camera_permission_body),

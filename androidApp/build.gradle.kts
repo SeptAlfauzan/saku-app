@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -44,8 +45,8 @@ android {
         applicationId = "com.septaalfauzan.saku"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
+        versionName = (project.findProperty("versionName") as String?) ?: "1.0"
     }
     packaging {
         resources {
@@ -68,4 +69,19 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+val check16kPageSize by tasks.registering(Check16kPageSizeTask::class) {
+    group = "verification"
+    description = "Verifies native libraries (.so) in release APK/AAB are aligned to 16 KB page sizes."
+    val localProps = file("local.properties")
+    val sdkDirValue = if (localProps.exists()) {
+        val props = Properties()
+        localProps.inputStream().use { props.load(it) }
+        props.getProperty("sdk.dir")
+    } else {
+        null
+    } ?: System.getenv("ANDROID_HOME")
+        ?: error("Android SDK not found. Set sdk.dir in local.properties or ANDROID_HOME.")
+    sdkDir.set(file(sdkDirValue))
 }

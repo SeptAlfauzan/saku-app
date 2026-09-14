@@ -1,5 +1,7 @@
 package com.septaalfauzan.saku.notification
 
+import com.septaalfauzan.saku.domain.importexport.ApplyResult
+import com.septaalfauzan.saku.domain.importexport.UndoSnapshot
 import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.DuplicateKey
 import com.septaalfauzan.saku.domain.model.KeywordType
@@ -85,6 +87,10 @@ class ProcessNotificationUseCaseTest {
                 it.sourcePackage == key.sourcePackage && it.type == key.type && it.amount == key.amount &&
                     it.occurredAt.toEpochMilliseconds() in withinStartMillis..withinEndMillis
             }
+        override suspend fun getAll(): List<Transaction> = inserted.toList()
+        override suspend fun applyImport(changes: List<Transaction>): ApplyResult =
+            ApplyResult(0, 0, UndoSnapshot(emptyList(), emptyMap()))
+        override suspend fun undoImport(snapshot: UndoSnapshot) = Unit
     }
 
     private val bcaKeywords = listOf(

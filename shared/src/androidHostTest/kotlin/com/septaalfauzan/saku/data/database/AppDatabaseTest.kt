@@ -161,7 +161,7 @@ class AppDatabaseTest {
     @Test
     fun repositorySeedsAndReturnsAllCategories() = runTest {
         val db = buildInMemory()
-        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        val repo = RoomTransactionRepository(db, db.transactionDao(), db.categoryDao())
         val categories = repo.observeCategories().first()
         val expenseIds = categories.filter { it.type == TransactionType.EXPENSE }.map { it.id }
         val incomeIds = categories.filter { it.type == TransactionType.INCOME }.map { it.id }
@@ -179,7 +179,7 @@ class AppDatabaseTest {
     @Test
     fun repositorySeedsOnlyOnce() = runTest {
         val db = buildInMemory()
-        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        val repo = RoomTransactionRepository(db, db.transactionDao(), db.categoryDao())
         val catDao = db.categoryDao()
         repo.observeCategories().first()
         repo.observeCategories().first()
@@ -190,7 +190,7 @@ class AppDatabaseTest {
     @Test
     fun observePendingReturnsOnlyPendingReviews() = runTest {
         val db = buildInMemory()
-        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        val repo = RoomTransactionRepository(db, db.transactionDao(), db.categoryDao())
         repo.insert(tx("pending1", TransactionType.EXPENSE, 50_000, status = TransactionStatus.PENDING_REVIEW).copy(sourcePackage = "com.bca"))
         repo.insert(tx("confirmed1", TransactionType.INCOME, 1_000, status = TransactionStatus.CONFIRMED).copy(sourcePackage = "com.bca"))
         assertContentEquals(listOf("pending1"), repo.observePending().first().map { it.id })
@@ -200,7 +200,7 @@ class AppDatabaseTest {
     @Test
     fun setStatusMovesTransaction() = runTest {
         val db = buildInMemory()
-        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        val repo = RoomTransactionRepository(db, db.transactionDao(), db.categoryDao())
         repo.insert(tx("p1", TransactionType.EXPENSE, 10_000, status = TransactionStatus.PENDING_REVIEW))
         repo.setStatus("p1", TransactionStatus.CONFIRMED)
         assertTrue(repo.observePending().first().isEmpty())
@@ -210,7 +210,7 @@ class AppDatabaseTest {
     @Test
     fun findRecentDuplicateFindsWithinWindow() = runTest {
         val db = buildInMemory()
-        val repo = RoomTransactionRepository(db.transactionDao(), db.categoryDao())
+        val repo = RoomTransactionRepository(db, db.transactionDao(), db.categoryDao())
         val existing = tx("dup1", TransactionType.EXPENSE, 150_000, status = TransactionStatus.CONFIRMED)
             .copy(sourcePackage = "com.bca", occurredAt = Instant.fromEpochMilliseconds(1_000_000_000_000))
         repo.insert(existing)

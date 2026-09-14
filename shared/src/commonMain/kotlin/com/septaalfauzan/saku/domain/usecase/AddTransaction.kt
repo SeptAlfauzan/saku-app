@@ -19,6 +19,8 @@ class AddTransaction(private val repository: TransactionRepository) {
         categoryId: String?,
         description: String?,
         occurredAt: Instant,
+        source: TransactionSource = TransactionSource.MANUAL,
+        sourcePackage: String? = null,
     ): Transaction {
         val now = Clock.System.now()
         val tx = Transaction(
@@ -29,8 +31,8 @@ class AddTransaction(private val repository: TransactionRepository) {
             merchant = merchant,
             categoryId = categoryId,
             description = description,
-            source = TransactionSource.MANUAL,
-            sourcePackage = null,
+            source = source,
+            sourcePackage = sourcePackage,
             status = TransactionStatus.CONFIRMED,
             confidence = 0.0,
             occurredAt = occurredAt,

@@ -43,9 +43,14 @@ kotlin {
     }
 
     sourceSets {
+        val ktorVersion = "3.5.2"
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
+            implementation("io.ktor:ktor-client-okhttp:${ktorVersion}")
+        }
+        iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:$ktorVersion")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -64,6 +69,10 @@ kotlin {
             implementation(libs.kotlinx.coroutinesCore)
             implementation(libs.koin.core)
             implementation(libs.koin.coreViewmodel)
+            implementation("io.ktor:ktor-client-core:${ktorVersion}")
+            implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
+            implementation("io.ktor:ktor-client-logging:${ktorVersion}")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

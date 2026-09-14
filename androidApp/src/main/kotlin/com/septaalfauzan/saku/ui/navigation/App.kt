@@ -48,6 +48,9 @@ import com.septaalfauzan.saku.ui.scanner.ScannerScreen
 import com.septaalfauzan.saku.ui.configure.ConfigureParserRoute
 import com.septaalfauzan.saku.ui.tracking.TrackingRoute
 import com.septaalfauzan.saku.ui.transactions.TransactionListRoute
+import com.septaalfauzan.saku.ui.settings.SettingsRoute
+import com.septaalfauzan.saku.ui.importexport.ExportCsvRoute
+import com.septaalfauzan.saku.ui.importexport.ImportCsvRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import kotlinx.serialization.json.Json
@@ -63,6 +66,9 @@ object Routes {
     const val RULES = "rules"
     const val SCANNER = "scanner"
     const val CONFIGURE_PARSER = "configure-parser"
+    const val SETTINGS = "settings"
+    const val EXPORT = "export"
+    const val IMPORT = "import"
     fun edit(id: String) = "edit/$id"
     fun detail(id: String) = "detail/$id"
     fun addScan(receipt: Receipt): String {
@@ -123,8 +129,8 @@ fun App() {
                 ) {
                     FloatingActionButton(
                         containerColor = SakuTheme.palette.ink,
-                        contentColor = if(isSystemInDarkTheme()) SakuTheme.palette.crimson else Color.White,
-                    onClick = {
+                        contentColor = if (isSystemInDarkTheme()) SakuTheme.palette.crimson else Color.White,
+                        onClick = {
                             showScanSheet = true
                         }
                     ) {
@@ -139,9 +145,11 @@ fun App() {
             }
         ) { _ ->
 
-            Box(Modifier
-                .fillMaxSize()
-                .padding(top = 24.dp)) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = 24.dp)
+            ) {
                 NavHost(
                     navController = navController,
                     startDestination = Routes.DASHBOARD,
@@ -154,12 +162,15 @@ fun App() {
                             onOpenTracking = { navController.navigate(Routes.TRACKING) },
                             onOpenTransaction = { id -> navController.navigate(Routes.detail(id)) },
                             onOpenAll = { navController.navigate(Routes.TRANSACTIONS) },
+                            onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                         )
                     }
                     composable(Routes.TRANSACTIONS) {
                         TransactionListRoute(
                             onOpen = { id -> navController.navigate(Routes.detail(id)) },
                             onAdd = { navController.navigate(Routes.ADD) },
+                            onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                            onBack = { navController.popBackStack() }
                         )
                     }
                     composable(
@@ -199,6 +210,7 @@ fun App() {
                                 transactionId = id,
                                 onEdit = { navController.navigate(Routes.edit(id)) },
                                 onDeleted = { navController.popBackStack() },
+                                onBack = { navController.popBackStack() },
                             )
                         }
                     }
@@ -225,6 +237,19 @@ fun App() {
                             onBack = { navController.popBackStack() },
                             onEdit = { receipt -> navController.navigate(Routes.addScan(receipt)) },
                         )
+                    }
+                    composable(Routes.SETTINGS) {
+                        SettingsRoute(
+                            onBack = { navController.popBackStack() },
+                            onOpenExport = { navController.navigate(Routes.EXPORT) },
+                            onOpenImport = { navController.navigate(Routes.IMPORT) },
+                        )
+                    }
+                    composable(Routes.EXPORT) {
+                        ExportCsvRoute(onBack = { navController.popBackStack() })
+                    }
+                    composable(Routes.IMPORT) {
+                        ImportCsvRoute(onBack = { navController.popBackStack() })
                     }
                 }
 

@@ -43,7 +43,8 @@ fun PillButton(
     }
     val content = when (variant) {
         PillButtonVariant.GHOST -> palette.ink
-        else ->   if(isSystemInDarkTheme()) SakuTheme.palette.crimson else Color.White
+        PillButtonVariant.ACCENT -> Color.White
+        else -> if (isSystemInDarkTheme()) SakuTheme.palette.crimson else Color.White
     }
     Box(
         modifier = modifier
@@ -61,10 +62,15 @@ fun PillButton(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (icon != null) {
-                Icon(icon, contentDescription = null, tint = content, modifier = Modifier.padding(end = if(text!=null) 8.dp else 0.dp))
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = content,
+                    modifier = Modifier.padding(end = if (text != null) 8.dp else 0.dp)
+                )
             }
-            if(text != null){
-            Text(text, style = type.labelMd, color = content)
+            if (text != null) {
+                Text(text, style = type.labelMd, color = content)
             }
         }
     }
