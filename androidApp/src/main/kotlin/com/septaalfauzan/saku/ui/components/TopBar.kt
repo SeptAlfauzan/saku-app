@@ -17,8 +17,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
+import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme.palette
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme.type
+import com.septaalfauzan.saku.ui.designsystem.sakuColorScheme
 
 @Composable
 fun TopBar(
@@ -27,6 +29,8 @@ fun TopBar(
     onBack: () -> Unit,
     action: @Composable () -> Unit
 ) {
+    val palette = SakuTheme.palette
+    val theme = sakuColorScheme(palette)
     Row(
         modifier = Modifier
             .statusBarsPadding()
@@ -39,20 +43,20 @@ fun TopBar(
             Icon(
                 SakuIcons.ChevronLeft,
                 contentDescription = stringResource(R.string.common_back),
-                tint = Color.White
+                tint = theme.onSurface
             )
         }
         Column{
             Text(
                 title,
                 style = type.headlineLg,
-                color = Color.White
+                color = theme.onSurface
             )
             if (subTitle != null)
                 Text(
                     subTitle,
                     style = type.bodySm,
-                    color = palette.slate
+                    color = theme.onSurfaceVariant
                 )
         }
         Spacer(Modifier.weight(1f))
