@@ -109,7 +109,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.septaalfauzan.saku
-          releaseFiles: '*.aab'
+          releaseFiles: androidApp/build/outputs/bundle/release/*.aab
           whatsNewDirectory: distribution/whatsnew
           track: internal
           status: completed
