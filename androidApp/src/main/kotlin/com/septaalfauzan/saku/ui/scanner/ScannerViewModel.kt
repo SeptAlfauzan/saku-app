@@ -121,7 +121,7 @@ class ScannerViewModel(
             try {
                 _scanOcrState.value = StateUi.Loading
                 val byteImage = File(imagePath).readBytes()
-                val compressedImage = ImageCompressor.compress(byteImage)
+                val compressedImage = ImageCompressor.compress(byteImage, quality = 65)
                 val compressedFileTemp = File.createTempFile("receipt_", ".jpeg", context.cacheDir).also {file ->
                     file.writeBytes(compressedImage.bytes)
                 }

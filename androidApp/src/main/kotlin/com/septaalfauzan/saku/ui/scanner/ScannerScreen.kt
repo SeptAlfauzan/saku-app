@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.util.Size
 import androidx.exifinterface.media.ExifInterface
 import java.io.IOException
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,6 +15,8 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
@@ -266,8 +269,6 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                     )
                                 }
                             }
-
-
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
                             PillButton(
@@ -486,6 +487,16 @@ private fun CameraView(
             }
             val capture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setResolutionSelector(
+                    ResolutionSelector.Builder()
+                        .setResolutionStrategy(
+                            ResolutionStrategy(
+                                Size(2400, 3200),
+                                ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
+                            )
+                        )
+                        .build()
+                )
                 .setFlashMode(flashMode.toCameraXFlash())
                 .build()
             imageCapture = capture
