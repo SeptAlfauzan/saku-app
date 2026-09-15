@@ -46,6 +46,7 @@ import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import androidx.compose.ui.res.stringResource
 import com.septaalfauzan.saku.R
+import com.septaalfauzan.saku.ui.components.NumberVisualTransformation
 import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.util.formatShortDate
 import java.time.Instant
@@ -86,8 +87,6 @@ fun AddEditRoute(
                 action = {}
             )
         }
-
-
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -119,6 +118,7 @@ fun AddEditRoute(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier.weight(1f),
+                            visualTransformation = NumberVisualTransformation()
                         )
                     }
                 }
