@@ -44,6 +44,28 @@ jobs:
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
 
+      - name: Prepare release notes from GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p distribution/whatsnew
+          NOTE="$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json body -q .body 2>/dev/null || true)"
+          
+          ID_NOTE="$(printf '%s\n' "$NOTE" | sed -n '/^\[ID\]/,/^\[EN\]/p' | sed '1d;$d')"
+          EN_NOTE="$(printf '%s\n' "$NOTE" | sed -n '/^\[EN\]/,$p' | sed '1d')"
+          
+          [ -z "$ID_NOTE" ] && ID_NOTE="Rilis $GITHUB_REF_NAME"
+          [ -z "$EN_NOTE" ] && EN_NOTE="Release $GITHUB_REF_NAME"
+          
+          # Play Store release notes are capped at 500 characters per locale
+          printf '%s' "$ID_NOTE" | cut -c1-500 > distribution/whatsnew/whatsnew-id
+          printf '%s' "$EN_NOTE" | cut -c1-500 > distribution/whatsnew/whatsnew-en-US
+          
+          echo "--- id ---"
+          cat distribution/whatsnew/whatsnew-id
+          echo "--- en-US ---"
+          cat distribution/whatsnew/whatsnew-en-US
+
       - name: Build release AAB
         env:
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
@@ -86,5 +108,6 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.septaalfauzan.saku
           releaseFiles: '*.aab'
+          whatsNewDirectory: distribution/whatsnew
           track: internal
           status: completed

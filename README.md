@@ -68,6 +68,30 @@ Saku is a Kotlin Multiplatform project sharing business logic and UI between And
 - Android tests: `./gradlew :shared:testAndroidHostTest`
 - iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
 
+### Writing GitHub release notes
+
+Each release note includes a short summary in both Indonesian and English, prefixed with `[ID]` and `[EN]`. Write the Indonesian section first, then the English translation. Keep both to a few sentences and use plain language that users can understand.
+
+Template:
+
+```
+[ID]
+Ringkasan perubahan utama untuk pengguna dalam Bahasa Indonesia.
+
+[EN]
+Summary of the main changes for users in English.
+```
+
+Example:
+
+```
+[ID]
+Perbaikan bug login dan peningkatan performa kamera.
+
+[EN]
+Fixed login bug and improved camera performance.
+```
+
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html).
