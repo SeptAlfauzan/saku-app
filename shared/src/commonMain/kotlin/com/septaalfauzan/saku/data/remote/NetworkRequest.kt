@@ -1,15 +1,19 @@
 package com.septaalfauzan.saku.data.remote
 
+import com.septaalfauzan.saku.data.remote.response.ErrorResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 
 sealed class NetworkResult<out T> {
     data class Success<T>(val data: T) : NetworkResult<T>()
     data class Failure(val errorMessage: String) : NetworkResult<Nothing>()
 }
+
+@PublishedApi internal val errorJson = Json { ignoreUnknownKeys = true }
 
 suspend inline fun <reified T> HttpResponse.handleResponse(): NetworkResult<T> {
     return when (status.value) {
@@ -23,7 +27,13 @@ suspend inline fun <reified T> HttpResponse.handleResponse(): NetworkResult<T> {
         }
         else -> {
             val errorBody = bodyAsText()
-            NetworkResult.Failure("Error ${status.value}: $errorBody")
+            val errorMessage = try {
+                errorJson.decodeFromString<ErrorResponse>(errorBody).error
+                    .ifBlank { errorBody }
+            } catch (_: Exception) {
+                errorBody
+            }
+            NetworkResult.Failure(errorMessage)
         }
     }
 }
