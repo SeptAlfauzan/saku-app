@@ -29,8 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.septaalfauzan.saku.R
+import com.septaalfauzan.saku.getAppVersion
 import com.septaalfauzan.saku.notification.NotificationAccessManager
 import com.septaalfauzan.saku.ui.components.EmptyState
 import com.septaalfauzan.saku.ui.components.LabelCaps
@@ -159,6 +161,7 @@ fun TrackingRoute(onBack: (() -> Unit)?, onConfigureParser: (() -> Unit)? = null
                     )
                 }
             }
+            Text("App Version v${getAppVersion()}", modifier = Modifier.fillMaxWidth(), color = palette.slate,  textAlign = TextAlign.Center)
             Spacer(Modifier.height(SakuDp.bottomSafeClearance))
         }
     }

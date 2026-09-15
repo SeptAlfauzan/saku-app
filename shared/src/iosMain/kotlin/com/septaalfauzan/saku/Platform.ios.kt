@@ -1,5 +1,6 @@
 package com.septaalfauzan.saku
 
+import platform.Foundation.NSBundle
 import platform.UIKit.UIDevice
 
 class IOSPlatform: Platform {
@@ -7,3 +8,6 @@ class IOSPlatform: Platform {
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
+
+actual fun getAppVersion(): String =
+    (NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String) ?: "?"
