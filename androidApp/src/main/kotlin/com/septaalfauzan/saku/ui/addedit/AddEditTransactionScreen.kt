@@ -97,16 +97,6 @@ fun AddEditRoute(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = SakuDp.bottomSafeClearance),
         ) {
-//            item { Spacer(Modifier.height(SakuDp.spaceSm)) }
-//            item {
-//                Text(
-//                    if (transactionId != null) stringResource(R.string.addedit_edit_title) else stringResource(
-//                        R.string.addedit_add_title
-//                    ),
-//                    style = SakuTheme.type.headlineLg,
-//                    color = SakuTheme.palette.ink,
-//                )
-//            }
             item {
                 TypeSelector(type = state.type, onSelect = viewModel::updateType)
             }

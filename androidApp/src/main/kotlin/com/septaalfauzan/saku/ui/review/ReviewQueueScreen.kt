@@ -56,21 +56,6 @@ fun ReviewQueueRoute(onEdit: (String) -> Unit, onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(horizontal = SakuDp.screenEdgePadding)
         ) {
-//            Row(verticalAlignment = Alignment.CenterVertically) {
-//                IconButton(onClick = onBack) {
-//                    Icon(
-//                        SakuIcons.Back,
-//                        contentDescription = stringResource(R.string.common_back),
-//                        tint = palette.ink
-//                    )
-//                }
-//                Text(
-//                    stringResource(R.string.review_title),
-//                    style = type.headlineLg,
-//                    color = palette.ink
-//                )
-//            }
-
             if (state.pending.isEmpty()) {
                 EmptyState(
                     title = stringResource(R.string.review_empty),
@@ -95,7 +80,7 @@ fun ReviewQueueRoute(onEdit: (String) -> Unit, onBack: () -> Unit) {
                                     variant = PillButtonVariant.ACCENT
                                 )
                                 PillButton(
-                                    stringResource(R.string.common_edit),
+                                    null,
                                     icon = Icons.Default.Edit,
                                     onClick = { onEdit(tx.id) },
                                     modifier = Modifier.weight(2f),

@@ -22,7 +22,7 @@ fun FilterChip(
 ) {
     val palette = SakuTheme.palette
     val type = SakuTheme.type
-    val bg = if (selected) palette.ink else palette.chalk
+    val bg = if (selected) palette.crimson else palette.chalk
     val fg = if (selected) Color.White else palette.slate
     Text(
         text = label,
