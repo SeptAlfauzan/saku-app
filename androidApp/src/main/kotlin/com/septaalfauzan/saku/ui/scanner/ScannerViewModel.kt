@@ -22,6 +22,7 @@ import com.septaalfauzan.saku.util.ImageCompressor
 import com.septaalfauzan.saku.util.Logger
 import com.septaalfauzan.saku.util.parseReceiptDate
 import kotlin.time.Clock
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +53,7 @@ class ScannerViewModel(
     private val getReceiptValue: GetReceiptValue,
     private val addTransaction: AddTransaction,
     private val observeCategories: ObserveCategories,
+    private val ocrDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ScannerUiState())
     val state: StateFlow<ScannerUiState> = _state.asStateFlow()
@@ -124,7 +126,7 @@ class ScannerViewModel(
     }
 
     fun scanReceipt(imagePath: String, context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ocrDispatcher) {
             try {
                 _scanOcrState.value = StateUi.Loading
                 val byteImage = File(imagePath).readBytes()
