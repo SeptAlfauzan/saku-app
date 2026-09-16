@@ -76,7 +76,7 @@ androidx-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.re
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 compose-ui-testJunit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "composeMultiplatform" }
-compose-ui-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiUnit" }
+compose-ui-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.11.1" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
