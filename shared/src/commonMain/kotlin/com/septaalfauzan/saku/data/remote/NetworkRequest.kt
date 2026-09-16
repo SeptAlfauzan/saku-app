@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.serialization.ContentConvertException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
@@ -21,6 +22,8 @@ suspend inline fun <reified T> HttpResponse.handleResponse(): NetworkResult<T> {
             try {
                 val result = if (T::class == Unit::class) Unit as T else body<T>()
                 NetworkResult.Success(result)
+            } catch (e: ContentConvertException) {
+                NetworkResult.Failure("Serialization error: ${e.message}")
             } catch (e: SerializationException) {
                 NetworkResult.Failure("Serialization error: ${e.message}")
             }
