@@ -6,10 +6,13 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.net.Uri
+import android.util.Log
 import android.util.Size
 import androidx.exifinterface.media.ExifInterface
 import java.io.IOException
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -35,20 +38,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.ZoomIn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,6 +89,7 @@ import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
+import com.septaalfauzan.saku.ui.designsystem.sakuColorScheme
 import com.septaalfauzan.saku.ui.state.StateUi
 import com.septaalfauzan.saku.util.formatRupiah
 import java.io.File
@@ -98,10 +102,23 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
     val viewModel: ScannerViewModel = koinViewModel()
     val state by viewModel.state.collectAsState()
     val palette = SakuTheme.palette
+    val colorScheme = sakuColorScheme(palette)
     val type = SakuTheme.type
     var shutterToken by remember { mutableStateOf(0) }
     val scanOcrState by viewModel.scanOcrState.collectAsState()
     val event by viewModel.event.collectAsState()
+    val pickMediaLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            val file = File(context.cacheDir, "pick_${System.currentTimeMillis()}.jpg")
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                file.outputStream().use { output -> input.copyTo(output) }
+            }
+            val path = file.absolutePath
+            viewModel.onCaptured(path, context)
+        }
+    }
 
     LaunchedEffect(event) {
         when (event) {
@@ -151,7 +168,6 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.Black)
         ) {
             when (state.phase) {
                 ScannerPhase.VIEWFINDER, ScannerPhase.SCANNING -> {
@@ -177,7 +193,6 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                         Text(
                             stringResource(R.string.scanner_review_title),
                             style = type.headlineSm,
-                            color = Color.White
                         )
                         state.capturedPath?.let { path ->
                             val bitmap =
@@ -193,12 +208,14 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                             .height(220.dp)
                                             .clip(RoundedCornerShape(20.dp)),
                                     )
-                                    IconButton(onClick = {
+                                    IconButton(
+                                        onClick = {
                                         showFullImage = true
                                     }) {
                                         Icon(
                                             imageVector = Icons.Default.ZoomIn,
-                                            contentDescription = "Zoom button"
+                                            contentDescription = "Zoom button",
+                                            tint = Color.White
                                         )
                                     }
                                 }
@@ -207,7 +224,6 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                         Column(
                             Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFF1A1A1F), RoundedCornerShape(20.dp))
                                 .padding(SakuDp.spaceMd),
                             verticalArrangement = Arrangement.spacedBy(SakuDp.spaceXs),
                         ) {
@@ -299,12 +315,15 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                 }
             }
 
-
-
             if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING) {
-                ShutterButton(
+                ShutterButtons(
                     scanning = state.phase == ScannerPhase.SCANNING,
                     onClick = { shutterToken++ },
+                    onPickImage = {
+                        pickMediaLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 48.dp),
@@ -349,7 +368,8 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
                                 }) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "Close button"
+                                        contentDescription = "Close button",
+                                        tint = Color.White,
                                     )
                                 }
                             }
@@ -361,24 +381,45 @@ fun ScannerScreen(onBack: () -> Unit, onEdit: (Receipt) -> Unit) {
 }
 
 @Composable
-private fun ShutterButton(scanning: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ShutterButtons(scanning: Boolean, onClick: () -> Unit, onPickImage: () -> Unit, modifier: Modifier = Modifier) {
     val palette = SakuTheme.palette
     Box(
-        modifier = modifier
-            .size(72.dp)
-            .border(3.dp, Color.White, CircleShape)
-            .clickable(enabled = !scanning, onClick = onClick),
-        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
+        contentAlignment = Alignment.BottomCenter
     ) {
         Box(
-            Modifier
-                .padding(8.dp)
-                .size(56.dp)
-                .background(
-                    if (scanning) palette.crimson.copy(alpha = 0.4f) else palette.crimson,
-                    CircleShape
-                ),
-        )
+            modifier = modifier
+                .size(72.dp)
+                .border(3.dp, Color.White, CircleShape)
+                .clickable(enabled = !scanning, onClick = onClick),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            Box(
+                Modifier
+                    .padding(8.dp)
+                    .size(56.dp)
+                    .background(
+                        if (scanning) palette.crimson.copy(alpha = 0.4f) else palette.crimson,
+                        CircleShape
+                    ),
+            )
+        }
+        IconButton(
+            onClick = onPickImage,
+            colors = IconButtonColors(
+                containerColor = Color.White,
+                contentColor = Color.Black,
+                disabledContentColor = Color.White,
+                disabledContainerColor = Color.DarkGray
+            ),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 52.dp, bottom = 52.dp)
+        ) {
+            Icon(Icons.Default.Image, "open galery")
+        }
     }
 }
 
@@ -390,7 +431,6 @@ private fun SampleField(label: String, value: String, fontSize: TextUnit = 14.sp
         Text(
             value,
             style = type.labelMd.copy(fontSize = fontSize),
-            color = Color.White,
             textAlign = TextAlign.End
         )
     }

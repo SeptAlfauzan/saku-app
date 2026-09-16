@@ -32,7 +32,7 @@ data class ReceiptData(
     val total: Long,
 
     @SerialName("payment_method")
-    val paymentMethod: String,
+    val paymentMethod: String?,
 
     val items: List<ReceiptItem>
 )
@@ -58,7 +58,7 @@ fun ReceiptData.toDomain(): Receipt = Receipt(
     this.tax ?: 0L,
     this.discount ?: 0L,
     this.total,
-    this.paymentMethod,
+    this.paymentMethod ?: "-",
     items = this.items.map {
         com.septaalfauzan.saku.domain.model.ReceiptItem(
             it.name,
