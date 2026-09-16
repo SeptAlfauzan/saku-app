@@ -35,6 +35,13 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.exifinterface)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.testCore)
+    testImplementation(libs.kotlinx.coroutinesTest)
+    testImplementation(libs.compose.ui.testJunit4)
+    testImplementation(libs.compose.ui.testManifest)
 }
 
 android {
@@ -77,6 +84,12 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
     }
 }
 
