@@ -70,7 +70,7 @@
     <string name="scanner.review_title">Tinjauan Scan</string>
     <string name="scanner.processing">Memproses Struk</string>
     <string name="scanner.detected">Terdeteksi</string>
-    <string name="scanner.provider">Penyedia</string>
+    <string name="scanner.provider">Metode Pembayaran</string>
     <string name="scanner.items">Item: </string>
     <string name="scanner.discount">Diskon</string>
     <string name="scanner.total">Total</string>

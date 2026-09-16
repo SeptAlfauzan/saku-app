@@ -78,6 +78,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutinesTest)
             implementation(libs.koin.test)
+            implementation("io.ktor:ktor-client-mock:3.5.2")
         }
         getByName("androidHostTest").dependencies {
             implementation(libs.androidx.sqliteBundledJvm)

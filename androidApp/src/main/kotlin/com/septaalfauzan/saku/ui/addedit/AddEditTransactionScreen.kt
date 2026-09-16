@@ -1,5 +1,6 @@
 package com.septaalfauzan.saku.ui.addedit
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,6 +47,7 @@ import com.septaalfauzan.saku.ui.designsystem.SakuDp
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import androidx.compose.ui.res.stringResource
 import com.septaalfauzan.saku.R
+import com.septaalfauzan.saku.domain.model.AddEditUiState
 import com.septaalfauzan.saku.ui.components.NumberVisualTransformation
 import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.util.formatShortDate
@@ -59,18 +61,19 @@ import org.koin.core.parameter.parametersOf
 fun AddEditRoute(
     transactionId: String? = null,
     prefillJson: String? = null,
-    onDone: () -> Unit,
+    editingScan: Boolean = false,
+    onDone: (AddEditUiState) -> Unit,
 ) {
     val viewModel: AddEditTransactionViewModel = koinViewModel(
-        parameters = { parametersOf(transactionId, prefillJson) },
+        parameters = { parametersOf(transactionId, prefillJson, editingScan) },
     )
     val state by viewModel.uiState.collectAsState()
     val event by viewModel.events.collectAsState()
 
     LaunchedEffect(event) {
         when (event) {
-            AddEditEvent.Saved -> onDone()
-            AddEditEvent.NavigateBack -> onDone()
+            AddEditEvent.Saved -> onDone(state)
+            AddEditEvent.NavigateBack -> onDone(state)
             null -> Unit
         }
         if (event != null) viewModel.consumeEvent()
@@ -83,7 +86,7 @@ fun AddEditRoute(
                     if (transactionId != null) stringResource(R.string.addedit_edit_title) else stringResource(
                         R.string.addedit_add_title
                     ),
-                onBack = onDone,
+                onBack = { onDone(state) },
                 action = {}
             )
         }

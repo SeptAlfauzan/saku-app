@@ -1,9 +1,11 @@
 package com.septaalfauzan.saku.ui.scanner
 
 import android.content.Context
+import android.icu.util.TimeZone
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.codec.binary.Base64
+import com.septaalfauzan.saku.domain.model.AddEditUiState
 import com.septaalfauzan.saku.domain.model.Receipt
 import com.septaalfauzan.saku.domain.model.TransactionSource
 import com.septaalfauzan.saku.domain.model.TransactionType
@@ -12,11 +14,15 @@ import com.septaalfauzan.saku.domain.model.toItemsNote
 import com.septaalfauzan.saku.domain.usecase.AddTransaction
 import com.septaalfauzan.saku.domain.usecase.GetReceiptValue
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
+import com.septaalfauzan.saku.extension.toDateString
+import com.septaalfauzan.saku.extension.toTimeString
+import com.septaalfauzan.saku.ui.addedit.InputValidation
 import com.septaalfauzan.saku.ui.state.StateUi
 import com.septaalfauzan.saku.util.ImageCompressor
 import com.septaalfauzan.saku.util.Logger
 import com.septaalfauzan.saku.util.parseReceiptDate
 import kotlin.time.Clock
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +30,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.time.Instant
 
 enum class ScannerPhase { VIEWFINDER, SCANNING, RESULT }
 
@@ -45,6 +53,7 @@ class ScannerViewModel(
     private val getReceiptValue: GetReceiptValue,
     private val addTransaction: AddTransaction,
     private val observeCategories: ObserveCategories,
+    private val ocrDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ScannerUiState())
     val state: StateFlow<ScannerUiState> = _state.asStateFlow()
@@ -77,7 +86,7 @@ class ScannerViewModel(
                     type = TransactionType.EXPENSE,
                     amount = receipt.total,
                     merchant = receipt.merchantName.ifBlank { null },
-                    categoryId = categories.defaultExpenseId(),
+                    categoryId = receipt.categoryId ?: categories.defaultExpenseId(),
                     description = receipt.toItemsNote().ifBlank { null },
                     occurredAt = parseReceiptDate(receipt.transactionDate) ?: Clock.System.now(),
                     source = TransactionSource.SCAN,
@@ -117,14 +126,15 @@ class ScannerViewModel(
     }
 
     fun scanReceipt(imagePath: String, context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ocrDispatcher) {
             try {
                 _scanOcrState.value = StateUi.Loading
                 val byteImage = File(imagePath).readBytes()
                 val compressedImage = ImageCompressor.compress(byteImage, quality = 65)
-                val compressedFileTemp = File.createTempFile("receipt_", ".jpeg", context.cacheDir).also {file ->
-                    file.writeBytes(compressedImage.bytes)
-                }
+                val compressedFileTemp =
+                    File.createTempFile("receipt_", ".jpeg", context.cacheDir).also { file ->
+                        file.writeBytes(compressedImage.bytes)
+                    }
                 val result = getReceiptValue.invoke(
                     fileToBase64(compressedFileTemp.path),
                     "image/jpeg"
@@ -136,5 +146,41 @@ class ScannerViewModel(
                 _scanOcrState.value = StateUi.Error(e.message ?: "Error occured")
             }
         }
+    }
+
+    fun updateStateFromEditValue(saveJson: String) {
+
+        val result = saveJson?.let {
+            runCatching { Json.decodeFromString(AddEditUiState.serializer(), it) }.getOrNull()
+        }
+        if (result == null) return
+        when (_scanOcrState.value) {
+            is StateUi.Success<Receipt> -> {
+                val data = (_scanOcrState.value as StateUi.Success<Receipt>).data
+                val instant = Instant
+                    .fromEpochMilliseconds(result.occurredAtMillis)
+                _scanOcrState.value = StateUi.Success(
+                    Receipt(
+                        merchantName = result.merchant,
+                        transactionDate = instant.toDateString(),
+                        transactionTime = instant.toTimeString(),
+                        currency = "IDR",
+                        subtotal = data.subtotal,
+                        tax = data.tax,
+                        discount = data.discount,
+                        total = InputValidation.parseAmountToLong(result.amountInput) ?: 0,
+                        paymentMethod = data.paymentMethod,
+                        items = data.items,
+                        note = result.note,
+                        categories = result.categories,
+                        categoryId = result.categoryId,
+                        transactionType = result.type,
+                    )
+                )
+            }
+
+            else -> return
+        }
+
     }
 }

@@ -63,7 +63,6 @@ class ConfigureParserViewModel(
             .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
             .map { InstalledApp(label = it.loadLabel(pm).toString(), packageName = it.packageName) }
             .sortedBy { it.label.lowercase() }
-        Log.d("APPS", "apps $apps")
         _uiState.value = _uiState.value.copy(installedApps = apps)
     }
 

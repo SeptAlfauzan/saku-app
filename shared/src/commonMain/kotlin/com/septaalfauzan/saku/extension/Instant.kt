@@ -17,3 +17,18 @@ fun Instant.isToday(): Boolean {
 
     return instantDate == today
 }
+
+fun Instant.toDateString(): String {
+    val dateTime = toLocalDateTime(TimeZone.currentSystemDefault())
+
+    return "${dateTime.year}-" +
+            "${(dateTime.month.ordinal + 1).toString().padStart(2, '0')}-" +
+            dateTime.day.toString().padStart(2, '0')
+}
+
+fun Instant.toTimeString(): String {
+    val dateTime = toLocalDateTime(TimeZone.currentSystemDefault())
+
+    return "${dateTime.hour.toString().padStart(2, '0')}:" +
+            dateTime.minute.toString().padStart(2, '0')
+}

@@ -2,7 +2,8 @@ package com.septaalfauzan.saku.ui.addedit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.septaalfauzan.saku.domain.model.Category
+import com.septaalfauzan.saku.domain.model.AddEditFormState
+import com.septaalfauzan.saku.domain.model.AddEditUiState
 import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionSource
 import com.septaalfauzan.saku.domain.model.TransactionStatus
@@ -21,31 +22,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-data class AddEditFormState(
-    val editingId: String? = null,
-    val type: TransactionType = TransactionType.EXPENSE,
-    val amountInput: String = "",
-    val categoryId: String? = null,
-    val merchant: String = "",
-    val note: String = "",
-    val occurredAtMillis: Long = Clock.System.now().toEpochMilliseconds(),
-    val amountError: String? = null,
-    val categoryError: String? = null,
-)
-
-data class AddEditUiState(
-    val editingId: String? = null,
-    val type: TransactionType = TransactionType.EXPENSE,
-    val amountInput: String = "",
-    val categoryId: String? = null,
-    val merchant: String = "",
-    val note: String = "",
-    val occurredAtMillis: Long = Clock.System.now().toEpochMilliseconds(),
-    val categories: List<Category> = emptyList(),
-    val amountError: String? = null,
-    val categoryError: String? = null,
-    val canSave: Boolean = false,
-)
 
 sealed interface AddEditEvent {
     data object Saved : AddEditEvent
@@ -59,6 +35,7 @@ class AddEditTransactionViewModel(
     private val updateTransaction: UpdateTransaction,
     transactionId: String? = null,
     prefillJson: String? = null,
+    private val editingScan: Boolean = false
 ) : ViewModel() {
 
     private val eventFlow = MutableStateFlow<AddEditEvent?>(null)
@@ -95,20 +72,27 @@ class AddEditTransactionViewModel(
 
     init {
         if (transactionId != null) {
-            viewModelScope.launch {
-                val existing = observeTransactions().first().firstOrNull { it.id == transactionId }
-                if (existing != null) {
-                    existingCreatedAt = existing.createdAt
-                    existingTransaction = existing
-                    fieldState.value = fieldState.value.copy(
-                        editingId = existing.id,
-                        type = existing.type,
-                        amountInput = existing.amount.toString(),
-                        categoryId = existing.categoryId,
-                        merchant = existing.merchant.orEmpty(),
-                        note = existing.description.orEmpty(),
-                        occurredAtMillis = existing.occurredAt.toEpochMilliseconds(),
-                    )
+            if (!prefillJson.isNullOrBlank()) {
+                ScanPrefill.decode(prefillJson)?.let { prefill ->
+                    fieldState.value = fieldState.value.withPrefill(prefill)
+                }
+            } else {
+                viewModelScope.launch {
+                    val existing =
+                        observeTransactions().first().firstOrNull { it.id == transactionId }
+                    if (existing != null) {
+                        existingCreatedAt = existing.createdAt
+                        existingTransaction = existing
+                        fieldState.value = fieldState.value.copy(
+                            editingId = existing.id,
+                            type = existing.type,
+                            amountInput = existing.amount.toString(),
+                            categoryId = existing.categoryId,
+                            merchant = existing.merchant.orEmpty(),
+                            note = existing.description.orEmpty(),
+                            occurredAtMillis = existing.occurredAt.toEpochMilliseconds(),
+                        )
+                    }
                 }
             }
         } else if (!prefillJson.isNullOrBlank()) {
@@ -118,12 +102,29 @@ class AddEditTransactionViewModel(
         }
     }
 
-    fun updateType(type: TransactionType) { mutate { it.copy(type = type) } }
-    fun updateAmount(input: String) { mutate { it.copy(amountInput = input) } }
-    fun updateCategory(id: String?) { mutate { it.copy(categoryId = id) } }
-    fun updateMerchant(value: String) { mutate { it.copy(merchant = value) } }
-    fun updateNote(value: String) { mutate { it.copy(note = value) } }
-    fun updateDate(millis: Long) { mutate { it.copy(occurredAtMillis = millis) } }
+    fun updateType(type: TransactionType) {
+        mutate { it.copy(type = type) }
+    }
+
+    fun updateAmount(input: String) {
+        mutate { it.copy(amountInput = input) }
+    }
+
+    fun updateCategory(id: String?) {
+        mutate { it.copy(categoryId = id) }
+    }
+
+    fun updateMerchant(value: String) {
+        mutate { it.copy(merchant = value) }
+    }
+
+    fun updateNote(value: String) {
+        mutate { it.copy(note = value) }
+    }
+
+    fun updateDate(millis: Long) {
+        mutate { it.copy(occurredAtMillis = millis) }
+    }
 
     private fun mutate(transform: (AddEditFormState) -> AddEditFormState) {
         val current = fieldState.value
@@ -134,15 +135,15 @@ class AddEditTransactionViewModel(
     }
 
     private fun recomputeCanSave(state: AddEditFormState): Boolean {
-        val amount = AddEditValidation.parseAmount(state.amountInput)
-        val errors = AddEditValidation.validate(state.type, amount, state.categoryId)
+        val amount = InputValidation.parseAmountToLong(state.amountInput)
+        val errors = InputValidation.validate(state.type, amount, state.categoryId)
         return errors.isEmpty()
     }
 
     fun save() {
         val state = fieldState.value
-        val amount = AddEditValidation.parseAmount(state.amountInput)
-        val errors = AddEditValidation.validate(state.type, amount, state.categoryId)
+        val amount = InputValidation.parseAmountToLong(state.amountInput)
+        val errors = InputValidation.validate(state.type, amount, state.categoryId)
         if (errors.isNotEmpty()) {
             fieldState.value = state.copy(
                 amountError = errors.firstOrNull { it.startsWith("Amount") },
@@ -150,38 +151,42 @@ class AddEditTransactionViewModel(
             )
             return
         }
+
         viewModelScope.launch {
-            val occurredAt = Instant.fromEpochMilliseconds(state.occurredAtMillis)
-            val editingId = state.editingId
-            if (editingId == null) {
-                val tx = addTransaction(
-                    type = state.type,
-                    amount = requireNotNull(amount),
-                    merchant = state.merchant.ifBlank { null },
-                    categoryId = state.categoryId,
-                    description = state.note.ifBlank { null },
-                    occurredAt = occurredAt,
-                )
-                addTransaction.store(tx)
-            } else {
-                updateTransaction.store(
-                    Transaction(
-                        id = editingId,
+            if (!editingScan) {
+
+                val occurredAt = Instant.fromEpochMilliseconds(state.occurredAtMillis)
+                val editingId = state.editingId
+                if (editingId == null) {
+                    val tx = addTransaction(
                         type = state.type,
                         amount = requireNotNull(amount),
-                        currency = "IDR",
                         merchant = state.merchant.ifBlank { null },
                         categoryId = state.categoryId,
                         description = state.note.ifBlank { null },
-                        source = existingTransaction?.source ?: TransactionSource.MANUAL,
-                        sourcePackage = existingTransaction?.sourcePackage,
-                        status = TransactionStatus.CONFIRMED,
-                        confidence = existingTransaction?.confidence ?: 0.0,
                         occurredAt = occurredAt,
-                        createdAt = existingCreatedAt ?: Clock.System.now(),
-                        updatedAt = Clock.System.now(),
                     )
-                )
+                    addTransaction.store(tx)
+                } else {
+                    updateTransaction.store(
+                        Transaction(
+                            id = editingId,
+                            type = state.type,
+                            amount = requireNotNull(amount),
+                            currency = "IDR",
+                            merchant = state.merchant.ifBlank { null },
+                            categoryId = state.categoryId,
+                            description = state.note.ifBlank { null },
+                            source = existingTransaction?.source ?: TransactionSource.MANUAL,
+                            sourcePackage = existingTransaction?.sourcePackage,
+                            status = TransactionStatus.CONFIRMED,
+                            confidence = existingTransaction?.confidence ?: 0.0,
+                            occurredAt = occurredAt,
+                            createdAt = existingCreatedAt ?: Clock.System.now(),
+                            updatedAt = Clock.System.now(),
+                        )
+                    )
+                }
             }
             eventFlow.value = AddEditEvent.Saved
         }

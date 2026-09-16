@@ -22,6 +22,7 @@ kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.8.0"
 kotlinx-serialization-json = "1.11.0"
 ksp = "2.3.10"
+ktor = "3.5.2"
 material3 = "1.11.0-alpha07"
 room3 = "3.0.2"
 androidx-navigation = "2.9.0"
@@ -73,6 +74,9 @@ androidx-lifecycle-viewModel = { module = "org.jetbrains.androidx.lifecycle:life
 androidx-navigationCompose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 androidx-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+compose-ui-testJunit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "composeMultiplatform" }
+compose-ui-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiUnit" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
