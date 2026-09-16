@@ -2,9 +2,9 @@ package com.septaalfauzan.saku.ui.addedit
 
 import com.septaalfauzan.saku.domain.model.TransactionType
 
-object AddEditValidation {
+object InputValidation {
 
-    fun parseAmount(input: String): Long? {
+    fun parseAmountToLong(input: String): Long? {
         val trimmed = input.trim()
         if (trimmed.isEmpty()) return null
         if (!trimmed.all { it.isDigit() }) return null

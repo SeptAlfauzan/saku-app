@@ -10,20 +10,20 @@ class AddEditValidationTest {
 
     @Test
     fun parseAmountRejectsNonNumeric() {
-        assertNull(AddEditValidation.parseAmount(""))
-        assertNull(AddEditValidation.parseAmount("abc"))
-        assertNull(AddEditValidation.parseAmount("12.500"))
+        assertNull(InputValidation.parseAmountToLong(""))
+        assertNull(InputValidation.parseAmountToLong("abc"))
+        assertNull(InputValidation.parseAmountToLong("12.500"))
     }
 
     @Test
     fun parseAmountAcceptsPlainInteger() {
-        assertEquals(12500L, AddEditValidation.parseAmount("12500"))
-        assertEquals(0L, AddEditValidation.parseAmount("0"))
+        assertEquals(12500L, InputValidation.parseAmountToLong("12500"))
+        assertEquals(0L, InputValidation.parseAmountToLong("0"))
     }
 
     @Test
     fun expenseRequiresPositiveAmountAndCategory() {
-        val errors = AddEditValidation.validate(
+        val errors = InputValidation.validate(
             type = TransactionType.EXPENSE,
             amount = 0L,
             categoryId = null,
@@ -34,7 +34,7 @@ class AddEditValidationTest {
 
     @Test
     fun incomeDoesNotRequireCategory() {
-        val errors = AddEditValidation.validate(
+        val errors = InputValidation.validate(
             type = TransactionType.INCOME,
             amount = null,
             categoryId = null,
@@ -47,7 +47,7 @@ class AddEditValidationTest {
     fun validExpenseHasNoErrors() {
         assertEquals(
             emptyList(),
-            AddEditValidation.validate(TransactionType.EXPENSE, 35000L, "food"),
+            InputValidation.validate(TransactionType.EXPENSE, 35000L, "food"),
         )
     }
 }

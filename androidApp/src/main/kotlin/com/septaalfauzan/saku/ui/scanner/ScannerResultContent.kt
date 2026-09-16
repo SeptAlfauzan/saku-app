@@ -72,10 +72,10 @@ internal fun ScannerResultContent(
     Column(
         Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(SakuDp.screenEdgePadding),
         verticalArrangement = Arrangement.spacedBy(SakuDp.spaceMd),
     ) {
-        Spacer(Modifier.height(SakuDp.spaceSm))
         Text(
             stringResource(R.string.scanner_review_title),
             style = type.headlineSm,
@@ -144,7 +144,7 @@ internal fun ScannerResultContent(
                     )
                     SampleField(
                         stringResource(R.string.scanner_items),
-                        data.items.map {
+                        data.note ?: data.items.map {
                             "${it.quantity}x ${it.name} (${formatRupiah(it.totalPrice)})"
                         }.joinToString(", "),
                     )

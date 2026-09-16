@@ -123,6 +123,7 @@ val appModule = module {
             // Koin 4.2.1 lacks typed getOrNull(Int); positional values list access
             params.values.getOrNull(0) as? String,  // transactionId
             params.values.getOrNull(1) as? String,   // prefillJson
+            params.values.getOrNull(2) as? Boolean ?: false, //editingScan
         )
     }
 }

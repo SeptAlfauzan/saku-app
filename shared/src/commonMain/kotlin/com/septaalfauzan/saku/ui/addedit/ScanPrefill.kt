@@ -1,6 +1,9 @@
 package com.septaalfauzan.saku.ui.addedit
 
+import com.septaalfauzan.saku.domain.model.AddEditFormState
+import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.Receipt
+import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.model.toItemsNote
 import com.septaalfauzan.saku.util.parseReceiptDate
 import kotlin.time.Clock
@@ -13,6 +16,9 @@ data class ScanPrefill(
     val merchant: String,
     val note: String,
     val occurredAtMillis: Long,
+    val type: TransactionType,
+    val categoryId: String?,
+    val categories: List<Category>
 ) {
     companion object {
         fun fromReceipt(
@@ -22,6 +28,9 @@ data class ScanPrefill(
             amount = receipt.total,
             merchant = receipt.merchantName,
             note = receipt.toItemsNote(),
+            type = receipt.transactionType,
+            categoryId = receipt.categoryId,
+            categories = receipt.categories,
             occurredAtMillis = parseReceiptDate(receipt.transactionDate)?.toEpochMilliseconds()
                 ?: fallbackMillis,
         )
@@ -34,8 +43,9 @@ data class ScanPrefill(
 fun AddEditFormState.withPrefill(prefill: ScanPrefill): AddEditFormState =
     copy(
         amountInput = prefill.amount.toString(),
-        categoryId = null,
+        categoryId = prefill.categoryId,
         merchant = prefill.merchant,
         note = prefill.note,
+        type = prefill.type,
         occurredAtMillis = prefill.occurredAtMillis,
     )
