@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 @Serializable
@@ -39,8 +40,8 @@ class NetworkRequestTest {
             )
         }
         val result = client(engine).safeRequest<Dummy> { get("https://test/api") }
-        assertTrue(result is NetworkResult.Success)
-        assertEquals(1, (result as NetworkResult.Success).data.id)
+        assertIs<NetworkResult.Success<Dummy>>(result)
+        assertEquals(1, result.data.id)
     }
 
     @Test
@@ -53,8 +54,8 @@ class NetworkRequestTest {
             )
         }
         val result = client(engine).safeRequest<Dummy> { get("https://test/api") }
-        assertTrue(result is NetworkResult.Failure)
-        assertTrue((result as NetworkResult.Failure).errorMessage.startsWith("Serialization error:"))
+        assertIs<NetworkResult.Failure>(result)
+        assertTrue(result.errorMessage.startsWith("Serialization error:"))
     }
 
     @Test

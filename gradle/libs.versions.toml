@@ -28,6 +28,7 @@ room3 = "3.0.2"
 androidx-navigation = "2.9.0"
 androidx-sqlite = "2.7.0"
 uiUnit = "1.12.0"
+androidxComposeTestManifest = "1.11.1"
 firebaseCrashlyticsBuildtools = "3.0.8"
 
 [libraries]
@@ -76,7 +77,7 @@ androidx-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.re
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 compose-ui-testJunit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "composeMultiplatform" }
-compose-ui-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.11.1" }
+compose-ui-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidxComposeTestManifest" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

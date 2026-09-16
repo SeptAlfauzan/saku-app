@@ -20,6 +20,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -202,7 +203,7 @@ class ScannerViewModelTest {
             categoryId = "food",
         )
         vm.updateStateFromEditValue(
-            kotlinx.serialization.json.Json.encodeToString(
+            Json.encodeToString(
                 AddEditUiState.serializer(),
                 edit,
             ),
