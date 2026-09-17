@@ -52,12 +52,18 @@ import com.septaalfauzan.saku.ui.review.ReviewQueueViewModel
 import com.septaalfauzan.saku.ui.scanreceipt.ScanReceiptViewmodel
 import com.septaalfauzan.saku.ui.tracking.TrackingViewModel
 import com.septaalfauzan.saku.ui.transactions.TransactionListViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val appModule = module {
+    single<CoroutineDispatcher> {
+        Dispatchers.IO
+    }
     single { buildRoomDatabase(createDatabaseBuilder()) }
     single { get<AppDatabase>().transactionDao() }
     single { get<AppDatabase>().categoryDao() }

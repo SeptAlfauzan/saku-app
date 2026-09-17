@@ -41,7 +41,7 @@ dependencies {
     testImplementation(libs.androidx.testCore)
     testImplementation(libs.kotlinx.coroutinesTest)
     testImplementation(libs.compose.ui.testJunit4)
-    testImplementation(libs.compose.ui.testManifest)
+    debugImplementation(libs.compose.ui.testManifest)
 }
 
 android {

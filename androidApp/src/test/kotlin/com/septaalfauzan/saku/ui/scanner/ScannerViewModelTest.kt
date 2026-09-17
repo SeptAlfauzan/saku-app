@@ -6,8 +6,10 @@ import com.septaalfauzan.saku.domain.model.AddEditUiState
 import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.Receipt
 import com.septaalfauzan.saku.domain.model.ReceiptItem
+import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionSource
 import com.septaalfauzan.saku.domain.model.TransactionType
+import com.septaalfauzan.saku.domain.repository.TransactionRepository
 import com.septaalfauzan.saku.domain.usecase.AddTransaction
 import com.septaalfauzan.saku.domain.usecase.GetReceiptValue
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
@@ -20,6 +22,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -59,7 +62,7 @@ class ScannerViewModelTest {
 
     private fun buildViewModel(
         ocr: FakeOcrRepository,
-        tx: FakeTransactionRepository,
+        tx: TransactionRepository,
     ): ScannerViewModel = ScannerViewModel(
         GetReceiptValue(ocr),
         AddTransaction(tx),
@@ -159,6 +162,48 @@ class ScannerViewModelTest {
     }
 
     @Test
+    fun approveFailureSetsMessageAndConsumeMessageClears() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository().apply { result = sampleReceipt() }
+        val tx = object : TransactionRepository by FakeTransactionRepository(categories = sampleCategories()) {
+            override suspend fun insert(transaction: Transaction) {
+                throw Exception("db down")
+            }
+        }
+        val vm = buildViewModel(ocr, tx)
+
+        vm.scanReceipt(stubImageFile(), context)
+        advanceTimeBy(1)
+        runCurrent()
+        advanceUntilIdle()
+        vm.approve()
+        advanceUntilIdle()
+
+        assertEquals("db down", vm.state.value.message)
+
+        vm.consumeMessage()
+        assertNull(vm.state.value.message)
+    }
+
+    @Test
+    fun approveSuccessEmitsSavedAndConsumeEventClears() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository().apply { result = sampleReceipt() }
+        val tx = FakeTransactionRepository(categories = sampleCategories())
+        val vm = buildViewModel(ocr, tx)
+
+        vm.scanReceipt(stubImageFile(), context)
+        advanceTimeBy(1)
+        runCurrent()
+        advanceUntilIdle()
+        vm.approve()
+        advanceUntilIdle()
+
+        assertEquals(ScannerEvent.Saved, vm.event.value)
+
+        vm.consumeEvent()
+        assertNull(vm.event.value)
+    }
+
+    @Test
     fun retakeResetsState() = runTest(mainRule.dispatcher.scheduler) {
         val ocr = FakeOcrRepository().apply { result = sampleReceipt() }
         val tx = FakeTransactionRepository(categories = sampleCategories())
@@ -202,7 +247,7 @@ class ScannerViewModelTest {
             categoryId = "food",
         )
         vm.updateStateFromEditValue(
-            kotlinx.serialization.json.Json.encodeToString(
+            Json.encodeToString(
                 AddEditUiState.serializer(),
                 edit,
             ),

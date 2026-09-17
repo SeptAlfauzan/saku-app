@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -100,7 +101,8 @@ private fun ShutterButtons(scanning: Boolean, onClick: () -> Unit, onPickImage: 
             modifier = modifier
                 .size(72.dp)
                 .border(3.dp, Color.White, CircleShape)
-                .clickable(enabled = !scanning, onClick = onClick),
+                .clickable(enabled = !scanning, onClick = onClick)
+                .testTag("shutter_button"),
             contentAlignment = Alignment.BottomCenter,
         ) {
             Box(
@@ -124,6 +126,7 @@ private fun ShutterButtons(scanning: Boolean, onClick: () -> Unit, onPickImage: 
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 52.dp, bottom = 52.dp)
+                .testTag("gallery_button")
         ) {
             Icon(Icons.Default.Image, "open galery")
         }

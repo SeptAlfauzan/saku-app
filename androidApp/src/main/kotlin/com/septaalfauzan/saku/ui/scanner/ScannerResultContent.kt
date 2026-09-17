@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -164,7 +165,9 @@ internal fun ScannerResultContent(
             PillButton(
                 stringResource(R.string.scanner_approve_log),
                 onApprove,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("approve_button"),
                 enabled = !onScanningState,
                 variant = PillButtonVariant.ACCENT
             )
@@ -172,14 +175,18 @@ internal fun ScannerResultContent(
                 stringResource(R.string.common_edit),
                 { (scanOcrState as? StateUi.Success<Receipt>)?.data?.let(onEdit) },
                 enabled = !onScanningState,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("edit_button"),
                 variant = PillButtonVariant.GHOST,
             )
         }
         PillButton(
             stringResource(R.string.scanner_rescan),
             onRetake,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("rescan_button"),
             enabled = !onScanningState,
             variant = PillButtonVariant.PRIMARY
         )

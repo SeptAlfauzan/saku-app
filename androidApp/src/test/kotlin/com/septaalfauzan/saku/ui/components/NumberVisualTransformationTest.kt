@@ -35,6 +35,7 @@ class NumberVisualTransformationTest {
     fun offsetMappingRoundTrips() {
         val result = sut.filter(AnnotatedString("1234"))
 
+        assertEquals(0, result.offsetMapping.originalToTransformed(0))
         assertEquals(5, result.offsetMapping.originalToTransformed(4))
         assertEquals(4, result.offsetMapping.transformedToOriginal(5))
 
