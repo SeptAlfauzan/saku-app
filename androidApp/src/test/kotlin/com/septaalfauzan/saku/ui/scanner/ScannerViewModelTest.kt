@@ -29,8 +29,12 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+private const val AUTHORITY_MISSING = "com.septaalfauzan.saku.missing"
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -74,6 +78,37 @@ class ScannerViewModelTest {
         val file = java.io.File(context.cacheDir, name)
         if (!file.exists()) file.writeBytes(ByteArray(128))
         return file.absolutePath
+    }
+
+    private class NullAssetFileProvider : android.content.ContentProvider() {
+        override fun onCreate(): Boolean = true
+
+        override fun query(
+            uri: android.net.Uri,
+            projection: Array<String>?,
+            selection: String?,
+            selectionArgs: Array<String>?,
+            sortOrder: String?,
+        ): android.database.Cursor? = null
+
+        override fun getType(uri: android.net.Uri): String? = null
+
+        override fun insert(uri: android.net.Uri, values: android.content.ContentValues?): android.net.Uri? = null
+
+        override fun delete(
+            uri: android.net.Uri,
+            selection: String?,
+            selectionArgs: Array<String>?,
+        ): Int = 0
+
+        override fun update(
+            uri: android.net.Uri,
+            values: android.content.ContentValues?,
+            selection: String?,
+            selectionArgs: Array<String>?,
+        ): Int = 0
+
+        override fun openFile(uri: android.net.Uri, mode: String): android.os.ParcelFileDescriptor? = null
     }
 
     @Test
@@ -270,5 +305,68 @@ class ScannerViewModelTest {
         vm.updateStateFromEditValue("not json")
         // must not crash; state remains Idle
         assertIs<StateUi.Idle>(vm.scanOcrState.value)
+    }
+
+    @Test
+    fun onCapturedUriCopiesBytesToCacheAndAdvancesPhase() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository().apply { result = sampleReceipt() }
+        val tx = FakeTransactionRepository(categories = sampleCategories())
+        val vm = buildViewModel(ocr, tx)
+
+        val source = java.io.File(context.cacheDir, "shared_source.jpg")
+        source.writeBytes(ByteArray(128) { 0x42 })
+        val uri = android.net.Uri.fromFile(source)
+
+        vm.onCaptured(uri, context)
+
+        val scanningState = vm.state.value
+        assertEquals(ScannerPhase.SCANNING, scanningState.phase)
+        val copied = java.io.File(scanningState.capturedPath!!)
+        assertTrue(
+            copied.path.startsWith(java.io.File(context.cacheDir, "shared_image_").path),
+            "temp copy lives in cacheDir under shared_image_ prefix",
+        )
+        org.junit.Assert.assertArrayEquals(source.readBytes(), copied.readBytes())
+
+        advanceTimeBy(1500)
+        runCurrent()
+        assertEquals(ScannerPhase.RESULT, vm.state.value.phase)
+
+        advanceUntilIdle()
+        assertIs<StateUi.Success<Receipt>>(vm.scanOcrState.value)
+    }
+
+    @Test
+    fun onCapturedUnresolvableUriThrows() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository()
+        val tx = FakeTransactionRepository(categories = sampleCategories())
+        val vm = buildViewModel(ocr, tx)
+
+        // Robolectric's shadow returns an UnregisteredInputStream (throws on read) for an
+        // unregistered content:// authority instead of a null stream, so register a provider
+        // that yields no asset file; prod's openInputStream then resolves to null and the
+        // "Unable to open URI" error contract under test fires exactly as on device.
+        val provider = NullAssetFileProvider()
+        provider.attachInfo(
+            context,
+            android.content.pm.ProviderInfo().apply {
+                authority = AUTHORITY_MISSING
+                packageName = context.packageName
+                name = NullAssetFileProvider::class.java.name
+            },
+        )
+        org.robolectric.shadows.ShadowContentResolver.registerProviderInternal(
+            AUTHORITY_MISSING,
+            provider,
+        )
+        val uri = android.net.Uri.parse("content://$AUTHORITY_MISSING/images/1")
+
+        val e = assertFailsWith<IllegalStateException> {
+            vm.onCaptured(uri, context)
+        }
+        assertEquals(
+            "Unable to open URI: content://com.septaalfauzan.saku.missing/images/1",
+            e.message,
+        )
     }
 }
