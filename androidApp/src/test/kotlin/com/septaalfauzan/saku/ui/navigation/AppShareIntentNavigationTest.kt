@@ -26,10 +26,6 @@ import kotlin.test.assertEquals
  * under Robolectric in androidApp unit tests:
  *  - `App(sharedImageUri)` navigates from a `LaunchedEffect` (App.kt) before the
  *    `NavHost` has attached its graph -> "Navigation graph has not been set".
- *  - Booting the full graph composes Dashboard, whose Room flows require
- *    BundledSQLiteDriver's native `sqliteJni` lib, which is not on the host JVM
- *    classpath for androidApp unit tests (only `:shared`'s own `androidHostTest`
- *    source set pulls `sqlite-bundled-jvm`).
  *  - `SubTrackApplication` calls `startKoin` per `Application.onCreate`; Robolectric
  *    reuses the environment across test methods in a class, so a second test in the
  *    same class throws `KoinApplicationAlreadyStartedException`.
