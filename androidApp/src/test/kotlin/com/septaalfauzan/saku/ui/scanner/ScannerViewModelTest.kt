@@ -29,7 +29,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -337,7 +337,7 @@ class ScannerViewModelTest {
     }
 
     @Test
-    fun onCapturedUnresolvableUriThrows() = runTest(mainRule.dispatcher.scheduler) {
+    fun onCapturedUnresolvableUriSurfacesMessage() = runTest(mainRule.dispatcher.scheduler) {
         val ocr = FakeOcrRepository()
         val tx = FakeTransactionRepository(categories = sampleCategories())
         val vm = buildViewModel(ocr, tx)
@@ -345,7 +345,7 @@ class ScannerViewModelTest {
         // Robolectric's shadow returns an UnregisteredInputStream (throws on read) for an
         // unregistered content:// authority instead of a null stream, so register a provider
         // that yields no asset file; prod's openInputStream then resolves to null and the
-        // "Unable to open URI" error contract under test fires exactly as on device.
+        // "Unable to open URI" handling under test fires exactly as on device.
         val provider = NullAssetFileProvider()
         provider.attachInfo(
             context,
@@ -361,12 +361,17 @@ class ScannerViewModelTest {
         )
         val uri = android.net.Uri.parse("content://$AUTHORITY_MISSING/images/1")
 
-        val e = assertFailsWith<IllegalStateException> {
-            vm.onCaptured(uri, context)
-        }
+        vm.onCaptured(uri, context)
+
+        val state = vm.state.value
+        assertEquals(ScannerPhase.VIEWFINDER, state.phase)
         assertEquals(
             "Unable to open URI: content://com.septaalfauzan.saku.missing/images/1",
-            e.message,
+            state.message,
+        )
+        assertNull(
+            state.capturedPath,
+            "no capture phase when the shared image cannot be opened",
         )
     }
 }
