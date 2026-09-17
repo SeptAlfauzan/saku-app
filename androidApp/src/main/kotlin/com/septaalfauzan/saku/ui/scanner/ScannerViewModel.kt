@@ -1,7 +1,7 @@
 package com.septaalfauzan.saku.ui.scanner
 
 import android.content.Context
-import android.icu.util.TimeZone
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.codec.binary.Base64
@@ -69,6 +69,39 @@ class ScannerViewModel(
             _state.value = _state.value.copy(phase = ScannerPhase.RESULT)
         }
         scanReceipt(path, context)
+    }
+
+    fun onCaptured(uri: Uri, context: Context) {
+        val file = contentUriToTempFile(context, uri)
+        _state.value = _state.value.copy(phase = ScannerPhase.SCANNING, capturedPath = file.path)
+        viewModelScope.launch {
+            delay(1500)
+            _state.value = _state.value.copy(phase = ScannerPhase.RESULT)
+        }
+        scanReceipt(file.path, context)
+    }
+
+    private fun contentUriToTempFile(
+        context: Context,
+        uri: Uri
+    ): File {
+        val inputStream = context.contentResolver
+            .openInputStream(uri)
+            ?: error("Unable to open URI: $uri")
+
+        val file = File.createTempFile(
+            "shared_image_",
+            ".jpg",
+            context.cacheDir
+        )
+
+        inputStream.use { input ->
+            file.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        return file
     }
 
     fun retake() {

@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -60,7 +61,7 @@ object Routes {
     const val REVIEW = "review"
     const val TRACKING = "tracking"
     const val RULES = "rules"
-    const val SCANNER = "scanner"
+    const val SCANNER = "scanner?imageUri={imageUri}"
     const val CONFIGURE_PARSER = "configure-parser"
     const val SETTINGS = "settings"
     const val EXPORT = "export"
@@ -74,12 +75,16 @@ object Routes {
         )
         return "edit/editscan?prefill=${Uri.encode(json)}&editingScan=true"
     }
+
+    fun scanSharedImage(sharedImageUri: Uri?): String {
+        return "scanner?imageUri=${Uri.encode(sharedImageUri.toString())}"
+    }
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun App() {
+fun App(sharedImageUri: Uri?) {
     // 1. Track the scroll state of the list
     val listState = rememberLazyListState()
 
@@ -107,15 +112,22 @@ fun App() {
             !isScrollingDown || (currentIndex == 0 && currentOffset == 0)
         }
     }
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+    var showScanSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
+    LaunchedEffect(sharedImageUri) {
+        sharedImageUri?.let { uri ->
+            navController.navigate(
+                Routes.scanSharedImage(uri)
+            )
+        }
+    }
 
 
     SakuTheme {
-        val navController = rememberNavController()
-        val backStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = backStackEntry?.destination?.route
-        var showScanSheet by remember { mutableStateOf(false) }
-        val sheetState = rememberModalBottomSheetState()
         Scaffold(
             floatingActionButton = {
                 AnimatedVisibility(
@@ -185,7 +197,10 @@ fun App() {
                                     ?.savedStateHandle
                                     ?.set(
                                         "save_result",
-                                        Json.encodeToString(AddEditUiState.serializer(), formUiState),
+                                        Json.encodeToString(
+                                            AddEditUiState.serializer(),
+                                            formUiState
+                                        ),
                                     )
                                 navController.popBackStack()
                             },
@@ -216,7 +231,10 @@ fun App() {
                                     ?.savedStateHandle
                                     ?.set(
                                         "save_result",
-                                        Json.encodeToString(AddEditUiState.serializer(), formUiState),
+                                        Json.encodeToString(
+                                            AddEditUiState.serializer(),
+                                            formUiState
+                                        ),
                                     )
                                 navController.popBackStack()
                             },
@@ -256,12 +274,19 @@ fun App() {
                     composable(Routes.RULES) {
                         TrackingRoute(onBack = null)
                     }
-                    composable(Routes.SCANNER) {
+                    composable(
+                        Routes.SCANNER,
+                        arguments = listOf(androidx.navigation.navArgument("imageUri") {
+                            type = androidx.navigation.NavType.StringType
+                        }),
+                    ) { entry ->
                         val saveJson = navController.currentBackStackEntry
                             ?.savedStateHandle
                             ?.get<String>("save_result")
+                        val sharedImage = entry.arguments?.getString("imageUri")
+
                         ScannerScreen(
-                            navController = navController,
+                            sharedImagUri = sharedImage,
                             onBack = { navController.popBackStack() },
                             saveJsonEdit = saveJson,
                             onEdit = { receipt ->

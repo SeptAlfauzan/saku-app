@@ -31,23 +31,20 @@ import androidx.compose.ui.res.stringResource
 import com.septaalfauzan.saku.R
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavHostController
-import com.septaalfauzan.saku.domain.model.AddEditUiState
 import com.septaalfauzan.saku.domain.model.Receipt
 import org.koin.androidx.compose.koinViewModel
 import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import com.septaalfauzan.saku.util.Logger
-import kotlinx.serialization.json.Json
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScannerScreen(
     saveJsonEdit: String?,
-    navController: NavHostController,
-    onBack: () -> Unit, onEdit: (Receipt) -> Unit
+    onBack: () -> Unit, onEdit: (Receipt) -> Unit,
+    sharedImagUri: String? = null,
 ) {
     val context = LocalContext.current
     val viewModel: ScannerViewModel = koinViewModel()
@@ -77,15 +74,22 @@ fun ScannerScreen(
         if (event != null) viewModel.consumeEvent()
     }
     LaunchedEffect(Unit) {
-
         if(saveJsonEdit == null) return@LaunchedEffect
         viewModel.updateStateFromEditValue(saveJsonEdit)
+    }
+
+    LaunchedEffect(sharedImagUri) {
+        Logger.d("shared_image", "shared image $sharedImagUri")
+        sharedImagUri?.let {
+        val uri = Uri.parse(it)
+            viewModel.onCaptured(uri, context)
+        }
     }
 
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
-                context,
+            context,
                 Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED,
         )
