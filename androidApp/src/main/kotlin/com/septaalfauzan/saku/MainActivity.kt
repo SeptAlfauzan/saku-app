@@ -2,6 +2,7 @@ package com.septaalfauzan.saku
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,18 +22,23 @@ class MainActivity : ComponentActivity() {
             App(sharedImageUri)
         }
     }
-    private fun handleIntent(intent: Intent) {
-        if (intent.action == Intent.ACTION_SEND &&
-            intent.type?.startsWith("image/") == true
-        ) {
-            val imageUri = intent.getParcelableExtra<Uri>(
-                Intent.EXTRA_STREAM
-            )
 
-            imageUri?.let {
-                sharedImageUri = it
-            }
-        }
+    private fun handleIntent(intent: Intent) {
+        sharedImageUri = sharedImageUriFrom(intent)
+    }
+}
+
+internal fun sharedImageUriFrom(intent: Intent): Uri? {
+    if (intent.action != Intent.ACTION_SEND ||
+        intent.type?.startsWith("image/") != true
+    ) {
+        return null
+    }
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+    } else {
+        @Suppress("DEPRECATION")
+        intent.getParcelableExtra(Intent.EXTRA_STREAM)
     }
 }
 
