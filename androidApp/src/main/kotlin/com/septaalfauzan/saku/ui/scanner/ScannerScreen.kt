@@ -36,7 +36,6 @@ import org.koin.androidx.compose.koinViewModel
 import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
-import com.septaalfauzan.saku.util.Logger
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,9 +78,8 @@ fun ScannerScreen(
     }
 
     LaunchedEffect(sharedImagUri) {
-        Logger.d("shared_image", "shared image $sharedImagUri")
-        sharedImagUri?.let {
-        val uri = Uri.parse(it)
+        sharedImagUri?.takeIf { it.isNotBlank() }?.let { raw ->
+            val uri = Uri.parse(raw)
             viewModel.onCaptured(uri, context)
         }
     }

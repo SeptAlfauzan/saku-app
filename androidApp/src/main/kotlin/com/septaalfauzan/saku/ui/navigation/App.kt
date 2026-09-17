@@ -61,7 +61,8 @@ object Routes {
     const val REVIEW = "review"
     const val TRACKING = "tracking"
     const val RULES = "rules"
-    const val SCANNER = "scanner?imageUri={imageUri}"
+    const val SCANNER = "scanner"
+    const val SCANNER_PATTERN = "$SCANNER?imageUri={imageUri}"
     const val CONFIGURE_PARSER = "configure-parser"
     const val SETTINGS = "settings"
     const val EXPORT = "export"
@@ -77,7 +78,9 @@ object Routes {
     }
 
     fun scanSharedImage(sharedImageUri: Uri?): String {
-        return "scanner?imageUri=${Uri.encode(sharedImageUri.toString())}"
+        return sharedImageUri?.let {
+            "$SCANNER?imageUri=${Uri.encode(it.toString())}"
+        } ?: SCANNER
     }
 }
 
@@ -275,9 +278,10 @@ fun App(sharedImageUri: Uri?) {
                         TrackingRoute(onBack = null)
                     }
                     composable(
-                        Routes.SCANNER,
+                        Routes.SCANNER_PATTERN,
                         arguments = listOf(androidx.navigation.navArgument("imageUri") {
                             type = androidx.navigation.NavType.StringType
+                            defaultValue = ""
                         }),
                     ) { entry ->
                         val saveJson = navController.currentBackStackEntry

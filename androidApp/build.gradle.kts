@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.exifinterface)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.koin.test)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.testCore)

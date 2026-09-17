@@ -73,6 +73,12 @@ class ScannerViewModel(
 
     fun onCaptured(uri: Uri, context: Context) {
         val file = contentUriToTempFile(context, uri)
+        if (file == null) {
+            _state.value = _state.value.copy(
+                message = "Unable to open URI: $uri",
+            )
+            return
+        }
         _state.value = _state.value.copy(phase = ScannerPhase.SCANNING, capturedPath = file.path)
         viewModelScope.launch {
             delay(1500)
@@ -84,10 +90,10 @@ class ScannerViewModel(
     private fun contentUriToTempFile(
         context: Context,
         uri: Uri
-    ): File {
+    ): File? {
         val inputStream = context.contentResolver
             .openInputStream(uri)
-            ?: error("Unable to open URI: $uri")
+            ?: return null
 
         val file = File.createTempFile(
             "shared_image_",
