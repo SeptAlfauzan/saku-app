@@ -101,4 +101,40 @@ class ScannerResultContentTest {
         org.junit.Assert.assertTrue(approved)
         org.junit.Assert.assertTrue(retaken)
     }
+
+    @Test
+    fun successStateShowsItemsFromItemsFallbackWhenNoNote() {
+        val receipt = sampleReceipt().copy(
+            note = null,
+            items = listOf(
+                ReceiptItem("Nasi", 2, 20000, 20000),
+                ReceiptItem("Teh", 1, 5000, 5000),
+            ),
+        )
+        setContent(StateUi.Success(receipt))
+        compose.onNodeWithText("2x Nasi (Rp. 20.000), 1x Teh (Rp. 5.000)").assertExists()
+    }
+
+    @Test
+    fun successStatePrefersNoteOverItems() {
+        val receipt = sampleReceipt().copy(note = "Catatan belanja")
+        setContent(StateUi.Success(receipt))
+        compose.onNodeWithText("Catatan belanja").assertExists()
+    }
+
+    @Test
+    fun successStateShowsDiscount() {
+        val receipt = sampleReceipt().copy(discount = 10000)
+        setContent(StateUi.Success(receipt))
+        compose.onNodeWithText("Rp. 10.000").assertExists()
+    }
+
+    @Test
+    fun editButtonClickFiresOnEditWithReceipt() {
+        val receipt = sampleReceipt()
+        var edited: Receipt? = null
+        setContent(StateUi.Success(receipt), onEdit = { edited = it })
+        compose.onNodeWithTag("edit_button").assertIsEnabled().performScrollTo().performClick()
+        org.junit.Assert.assertEquals(receipt, edited)
+    }
 }

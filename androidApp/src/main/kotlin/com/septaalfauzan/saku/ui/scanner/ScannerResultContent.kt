@@ -175,7 +175,9 @@ internal fun ScannerResultContent(
                 stringResource(R.string.common_edit),
                 { (scanOcrState as? StateUi.Success<Receipt>)?.data?.let(onEdit) },
                 enabled = !onScanningState,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("edit_button"),
                 variant = PillButtonVariant.GHOST,
             )
         }

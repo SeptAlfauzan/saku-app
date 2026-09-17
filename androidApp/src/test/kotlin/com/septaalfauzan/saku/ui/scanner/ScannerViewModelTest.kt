@@ -6,8 +6,10 @@ import com.septaalfauzan.saku.domain.model.AddEditUiState
 import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.Receipt
 import com.septaalfauzan.saku.domain.model.ReceiptItem
+import com.septaalfauzan.saku.domain.model.Transaction
 import com.septaalfauzan.saku.domain.model.TransactionSource
 import com.septaalfauzan.saku.domain.model.TransactionType
+import com.septaalfauzan.saku.domain.repository.TransactionRepository
 import com.septaalfauzan.saku.domain.usecase.AddTransaction
 import com.septaalfauzan.saku.domain.usecase.GetReceiptValue
 import com.septaalfauzan.saku.domain.usecase.ObserveCategories
@@ -60,7 +62,7 @@ class ScannerViewModelTest {
 
     private fun buildViewModel(
         ocr: FakeOcrRepository,
-        tx: FakeTransactionRepository,
+        tx: TransactionRepository,
     ): ScannerViewModel = ScannerViewModel(
         GetReceiptValue(ocr),
         AddTransaction(tx),
@@ -157,6 +159,48 @@ class ScannerViewModelTest {
 
         assertNull(vm.event.value)
         assertEquals(0, tx.inserted.size)
+    }
+
+    @Test
+    fun approveFailureSetsMessageAndConsumeMessageClears() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository().apply { result = sampleReceipt() }
+        val tx = object : TransactionRepository by FakeTransactionRepository(categories = sampleCategories()) {
+            override suspend fun insert(transaction: Transaction) {
+                throw Exception("db down")
+            }
+        }
+        val vm = buildViewModel(ocr, tx)
+
+        vm.scanReceipt(stubImageFile(), context)
+        advanceTimeBy(1)
+        runCurrent()
+        advanceUntilIdle()
+        vm.approve()
+        advanceUntilIdle()
+
+        assertEquals("db down", vm.state.value.message)
+
+        vm.consumeMessage()
+        assertNull(vm.state.value.message)
+    }
+
+    @Test
+    fun approveSuccessEmitsSavedAndConsumeEventClears() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository().apply { result = sampleReceipt() }
+        val tx = FakeTransactionRepository(categories = sampleCategories())
+        val vm = buildViewModel(ocr, tx)
+
+        vm.scanReceipt(stubImageFile(), context)
+        advanceTimeBy(1)
+        runCurrent()
+        advanceUntilIdle()
+        vm.approve()
+        advanceUntilIdle()
+
+        assertEquals(ScannerEvent.Saved, vm.event.value)
+
+        vm.consumeEvent()
+        assertNull(vm.event.value)
     }
 
     @Test
