@@ -56,6 +56,11 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
         versionName = (project.findProperty("versionName") as String?) ?: "1.0"
+        buildConfigField(
+            "String",
+            "SENTRY_DSN",
+            "\"${System.getenv("SENTRY_DSN") ?: ""}\"",
+        )
     }
     packaging {
         resources {
@@ -86,6 +91,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     testOptions {
         unitTests {
