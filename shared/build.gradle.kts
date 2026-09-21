@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room3)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.sentryKmp)
 }
 
 kotlin {
@@ -84,6 +85,12 @@ kotlin {
             implementation(libs.androidx.sqliteBundledJvm)
             implementation(libs.androidx.testCore)
             implementation(libs.robolectric)
+        }
+    }
+
+    sourceSets {
+        all {
+            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
         }
     }
 }
