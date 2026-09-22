@@ -1,4 +1,4 @@
-name: Publish Docker image and Android release
+name: Android release
 
 on:
   push:
@@ -36,6 +36,15 @@ jobs:
           test -n "${{ secrets.ANDROID_KEY_PASSWORD }}" || { echo "::error::ANDROID_KEY_PASSWORD secret is not set"; exit 1; }
           echo "Signing inputs look present."
 
+      - name: Verify Sentry secrets
+        run: |
+          test -n "${{ secrets.SENTRY_DSN }}" || { echo "::error::SENTRY_DSN secret is not set"; exit 1; }
+          if [ -n "${{ secrets.SENTRY_AUTH_TOKEN }}" ]; then
+            echo "Sentry auth token present; debug symbols will upload."
+          else
+            echo "::warning::SENTRY_AUTH_TOKEN not set — debug symbol upload skipped, build continues."
+          fi
+
       - name: Set version info
         id: version
         run: |
@@ -72,6 +81,10 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           ./gradlew :androidApp:bundleRelease \
             -PversionCode=${{ steps.version.outputs.version_code }} \
