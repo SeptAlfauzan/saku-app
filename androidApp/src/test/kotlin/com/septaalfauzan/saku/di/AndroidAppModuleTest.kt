@@ -2,9 +2,11 @@ package com.septaalfauzan.saku.di
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import com.septaalfauzan.saku.sentry.sentryModule
 import com.septaalfauzan.saku.ui.scanner.ScannerViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -20,12 +22,17 @@ import kotlin.test.assertSame
 @Config(application = Application::class)
 class AndroidAppModuleTest : KoinTest {
 
+    @After
+    fun tearDown() {
+        stopKoin()
+    }
+
     @Suppress("DEPRECATION")
     @Test
     fun appGraphResolvesScannerViewModelAndDispatcher() {
         AndroidContextHolder.applicationContext = ApplicationProvider.getApplicationContext()
         val app = startKoin {
-            modules(appModule, androidAppModule)
+            modules(appModule, androidAppModule, sentryModule)
         }
 
         assertNotNull(app.koin.get<ScannerViewModel>())
@@ -34,6 +41,5 @@ class AndroidAppModuleTest : KoinTest {
         assertSame(Dispatchers.IO, dispatcher)
 
         app.checkModules()
-        stopKoin()
     }
 }

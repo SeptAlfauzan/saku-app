@@ -10,6 +10,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.septaalfauzan.saku.SubTrackApplication
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import com.septaalfauzan.saku.ui.scanner.ScannerScreen
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -17,6 +18,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.Shadows
+import org.koin.core.context.stopKoin
 import kotlin.test.assertEquals
 
 /**
@@ -49,6 +51,11 @@ class AppShareIntentNavigationTest {
         Shadows.shadowOf(
             ApplicationProvider.getApplicationContext<Application>()
         ).denyPermissions(Manifest.permission.CAMERA)
+    }
+
+    @After
+    fun tearDown() {
+        stopKoin()
     }
 
     private fun sharedImageUri(): Uri {
