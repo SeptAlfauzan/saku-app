@@ -62,7 +62,7 @@ class ScannerResultContentTest {
         compose.onNodeWithText("Alfamart").assertExists()
         compose.onNodeWithText("16-09-2026").assertExists()
         compose.onNodeWithText("-").assertExists()
-        compose.onNodeWithText("Rp. 9.500").assertExists()
+        compose.onNodeWithText("Rp9.500").assertExists()
     }
 
     @Test
@@ -112,7 +112,7 @@ class ScannerResultContentTest {
             ),
         )
         setContent(StateUi.Success(receipt))
-        compose.onNodeWithText("2x Nasi (Rp. 20.000), 1x Teh (Rp. 5.000)").assertExists()
+        compose.onNodeWithText("2x Nasi (Rp20.000), 1x Teh (Rp5.000)").assertExists()
     }
 
     @Test
@@ -126,7 +126,7 @@ class ScannerResultContentTest {
     fun successStateShowsDiscount() {
         val receipt = sampleReceipt().copy(discount = 10000)
         setContent(StateUi.Success(receipt))
-        compose.onNodeWithText("Rp. 10.000").assertExists()
+        compose.onNodeWithText("Rp10.000").assertExists()
     }
 
     @Test

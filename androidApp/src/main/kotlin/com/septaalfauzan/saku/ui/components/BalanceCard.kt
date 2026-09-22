@@ -61,7 +61,7 @@ fun BalanceCard(
             Column {
                 LabelCaps(stringResource(R.string.balance_net_balance, monthLabel))
                 Text(
-                    formatRupiah(balance),
+                    formatRupiah(balance, absoluteValue = false),
                     style = type.displayCurrencyMobile.copy(fontFeatureSettings = "tnum"),
                     color = palette.ink,
                 )

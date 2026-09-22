@@ -1,8 +1,6 @@
 package com.septaalfauzan.saku.ui.settings
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,8 +29,6 @@ fun SettingsRoute(
     onOpenExport: () -> Unit,
     onOpenImport: () -> Unit,
 ) {
-    val palette = SakuTheme.palette
-    val type = SakuTheme.type
     Scaffold(
         topBar = {
             TopBar(

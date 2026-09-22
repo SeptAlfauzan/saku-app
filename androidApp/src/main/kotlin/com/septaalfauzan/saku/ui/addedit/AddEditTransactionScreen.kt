@@ -63,6 +63,7 @@ fun AddEditRoute(
     prefillJson: String? = null,
     editingScan: Boolean = false,
     onDone: (AddEditUiState) -> Unit,
+    onBack: () -> Unit,
 ) {
     val viewModel: AddEditTransactionViewModel = koinViewModel(
         parameters = { parametersOf(transactionId, prefillJson, editingScan) },
@@ -73,7 +74,7 @@ fun AddEditRoute(
     LaunchedEffect(event) {
         when (event) {
             AddEditEvent.Saved -> onDone(state)
-            AddEditEvent.NavigateBack -> onDone(state)
+            AddEditEvent.NavigateBack -> onBack()
             null -> Unit
         }
         if (event != null) viewModel.consumeEvent()
@@ -86,7 +87,7 @@ fun AddEditRoute(
                     if (transactionId != null) stringResource(R.string.addedit_edit_title) else stringResource(
                         R.string.addedit_add_title
                     ),
-                onBack = { onDone(state) },
+                onBack = { onBack() },
                 action = {}
             )
         }

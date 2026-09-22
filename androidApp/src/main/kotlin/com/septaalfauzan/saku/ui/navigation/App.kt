@@ -32,6 +32,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.septaalfauzan.saku.R
 import com.septaalfauzan.saku.domain.model.AddEditUiState
 import com.septaalfauzan.saku.domain.model.Receipt
@@ -50,6 +52,7 @@ import com.septaalfauzan.saku.ui.settings.SettingsRoute
 import com.septaalfauzan.saku.ui.importexport.ExportCsvRoute
 import com.septaalfauzan.saku.ui.importexport.ImportCsvRoute
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
+import com.septaalfauzan.saku.ui.scanner.SuccessScreen
 import kotlinx.serialization.json.Json
 
 object Routes {
@@ -67,6 +70,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val EXPORT = "export"
     const val IMPORT = "import"
+    const val SUCCESS = "success?title={title}&description={description}"
     fun edit(id: String) = "edit/$id"
     fun detail(id: String) = "detail/$id"
     fun editScan(receipt: Receipt): String {
@@ -81,6 +85,10 @@ object Routes {
         return sharedImageUri?.let {
             "$SCANNER?imageUri=${Uri.encode(it.toString())}"
         } ?: SCANNER
+    }
+
+    fun successScreen(title: String?, description: String?): String {
+        return "success?title=$title&description=$description"
     }
 }
 
@@ -187,14 +195,18 @@ fun App(sharedImageUri: Uri?) {
                     composable(
                         Routes.ADD,
                         arguments = listOf(
-                            androidx.navigation.navArgument("prefill") {
-                                type = androidx.navigation.NavType.StringType
+                            navArgument("prefill") {
+                                type = NavType.StringType
                                 defaultValue = ""
                             },
                         ),
                     ) { entry ->
+                        val prefill = entry.arguments?.getString("prefill")
                         AddEditRoute(
-                            prefillJson = entry.arguments?.getString("prefill"),
+                            prefillJson = prefill,
+                            onBack = {
+                                navController.popBackStack()
+                            },
                             onDone = { formUiState ->
                                 navController.previousBackStackEntry
                                     ?.savedStateHandle
@@ -205,30 +217,41 @@ fun App(sharedImageUri: Uri?) {
                                             formUiState
                                         ),
                                     )
-                                navController.popBackStack()
+                                navController.navigate(
+                                    Routes.successScreen(
+                                        title = "Berhasil!",
+                                        description = if (prefill != null) "Transaksi berhasil diubah." else "Transaksi baru berhasil ditambahkan."
+                                    )
+                                )
                             },
                         )
                     }
                     composable(
                         Routes.EDIT,
                         arguments = listOf(
-                            androidx.navigation.navArgument("transactionId") {
-                                type = androidx.navigation.NavType.StringType
+                            navArgument("transactionId") {
+                                type = NavType.StringType
                             },
-                            androidx.navigation.navArgument("prefill") {
-                                type = androidx.navigation.NavType.StringType
+                            navArgument("prefill") {
+                                type = NavType.StringType
                                 defaultValue = ""
                             },
-                            androidx.navigation.navArgument("editingScan") {
-                                type = androidx.navigation.NavType.BoolType
+                            navArgument("editingScan") {
+                                type = NavType.BoolType
                                 defaultValue = false
                             },
                         ),
                     ) { entry ->
+                        val transactionId = entry.arguments?.getString("transactionId")
+                        val prefill = entry.arguments?.getString("prefill")
+                        val editingScan = entry.arguments?.getBoolean("editingScan") ?: false
                         AddEditRoute(
-                            transactionId = entry.arguments?.getString("transactionId"),
-                            prefillJson = entry.arguments?.getString("prefill"),
-                            editingScan = entry.arguments?.getBoolean("editingScan") ?: false,
+                            transactionId = transactionId,
+                            prefillJson = prefill,
+                            editingScan = editingScan,
+                            onBack = {
+                                navController.popBackStack()
+                            },
                             onDone = { formUiState ->
                                 navController.previousBackStackEntry
                                     ?.savedStateHandle
@@ -239,14 +262,43 @@ fun App(sharedImageUri: Uri?) {
                                             formUiState
                                         ),
                                     )
-                                navController.popBackStack()
+                                if (editingScan) navController.popBackStack() else navController.navigate(
+                                    Routes.successScreen(
+                                        title = "Berhasil!",
+                                        description = if (prefill != null) "Transaksi berhasil diubah." else "Transaksi baru berhasil ditambahkan."
+                                    )
+                                )
+                            },
+                        )
+                    }
+                    composable(
+                        Routes.SUCCESS,
+                        arguments = listOf(
+                            navArgument("title") {
+                                type = NavType.StringType
+                            },
+                            navArgument("description") {
+                                type = NavType.StringType
+                            },
+                        ),
+                    ) { entry ->
+                        SuccessScreen(
+                            title = entry.arguments?.getString("title") ?: "Berhasil!",
+                            description = entry.arguments?.getString("description"),
+                            onOkText = "Kembali ke Halaman Utama",
+                            onOk = {
+                                navController.navigate(Routes.DASHBOARD) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        inclusive = true
+                                    }
+                                }
                             },
                         )
                     }
                     composable(
                         Routes.DETAIL,
-                        arguments = listOf(androidx.navigation.navArgument("transactionId") {
-                            type = androidx.navigation.NavType.StringType
+                        arguments = listOf(navArgument("transactionId") {
+                            type = NavType.StringType
                         }),
                     ) { entry ->
                         val id = entry.arguments?.getString("transactionId")
@@ -279,8 +331,8 @@ fun App(sharedImageUri: Uri?) {
                     }
                     composable(
                         Routes.SCANNER_PATTERN,
-                        arguments = listOf(androidx.navigation.navArgument("imageUri") {
-                            type = androidx.navigation.NavType.StringType
+                        arguments = listOf(navArgument("imageUri") {
+                            type = NavType.StringType
                             defaultValue = ""
                         }),
                     ) { entry ->
@@ -291,7 +343,15 @@ fun App(sharedImageUri: Uri?) {
 
                         ScannerScreen(
                             sharedImagUri = sharedImage,
-                            onBack = { navController.popBackStack() },
+                            onBack = {
+                                navController.navigate(
+                                    Routes.successScreen(
+                                        title = "Berhasil!",
+                                        description = "Transaksi baru berhasil ditambahkan."
+                                    )
+                                )
+
+                            },
                             saveJsonEdit = saveJson,
                             onEdit = { receipt ->
                                 navController.navigate(Routes.editScan(receipt))

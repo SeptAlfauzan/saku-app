@@ -78,7 +78,8 @@ class AppShareIntentNavigationTest {
             }
         }
         compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodesWithText("Pemindai Struk").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("SCANNING").fetchSemanticsNodes().isNotEmpty() ||
+                compose.onAllNodesWithText("RESULT").fetchSemanticsNodes().isNotEmpty()
         }
     }
 }

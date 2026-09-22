@@ -30,6 +30,8 @@ dependencies {
     implementation(libs.koin.androidxCompose)
     implementation(libs.compose.material3)
     implementation(libs.compose.materialIconsExtended)
+    implementation(libs.compose.components.resources)
+    implementation(libs.compottie)
 
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
