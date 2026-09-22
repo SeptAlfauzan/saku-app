@@ -97,7 +97,7 @@ class ScannerResultContentTest {
             onRetake = { retaken = true },
         )
         compose.onNodeWithTag("rescan_button").assertIsEnabled().performScrollTo().performClick()
-        compose.onNodeWithTag("approve_button").assertIsEnabled().performClick()
+        compose.onNodeWithTag("approve_button").assertIsEnabled().performScrollTo().performClick()
         org.junit.Assert.assertTrue(approved)
         org.junit.Assert.assertTrue(retaken)
     }

@@ -2,6 +2,7 @@ package com.septaalfauzan.saku.ui.scanner
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.codec.binary.Base64
@@ -224,6 +225,14 @@ class ScannerViewModel(
 
             else -> return
         }
+    }
 
+
+    fun onCaptureSharedImage(raw: String, context: Context) {
+        _state.value = _state.value.copy(phase = ScannerPhase.RESULT)
+        viewModelScope.launch(Dispatchers.IO) {
+            val uri = raw.toUri()
+            onCaptured(uri, context)
+        }
     }
 }

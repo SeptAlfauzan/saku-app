@@ -343,13 +343,17 @@ fun App(sharedImageUri: Uri?) {
 
                         ScannerScreen(
                             sharedImagUri = sharedImage,
-                            onBack = {
+                            onDone = {
                                 navController.navigate(
                                     Routes.successScreen(
                                         title = "Berhasil!",
                                         description = "Transaksi baru berhasil ditambahkan."
                                     )
                                 )
+
+                            },
+                            onBack = {
+                                navController.popBackStack()
 
                             },
                             saveJsonEdit = saveJson,

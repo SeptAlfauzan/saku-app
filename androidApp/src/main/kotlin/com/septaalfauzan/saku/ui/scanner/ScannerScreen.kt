@@ -44,6 +44,7 @@ import androidx.core.net.toUri
 fun ScannerScreen(
     saveJsonEdit: String?,
     onBack: () -> Unit,
+    onDone: () -> Unit,
     onEdit: (Receipt) -> Unit,
     sharedImagUri: String? = null,
 ) {
@@ -69,7 +70,7 @@ fun ScannerScreen(
 
     LaunchedEffect(event) {
         when (event) {
-            ScannerEvent.Saved -> onBack()
+            ScannerEvent.Saved -> onDone()
             null -> Unit
         }
         if (event != null) viewModel.consumeEvent()
@@ -80,10 +81,9 @@ fun ScannerScreen(
     }
 
     LaunchedEffect(sharedImagUri) {
-        if(state.phase == ScannerPhase.RESULT) return@LaunchedEffect
+        if (state.phase == ScannerPhase.RESULT) return@LaunchedEffect
         sharedImagUri?.takeIf { it.isNotBlank() }?.let { raw ->
-            val uri = raw.toUri()
-            viewModel.onCaptured(uri, context)
+            viewModel.onCaptureSharedImage(raw, context)
         }
     }
 
@@ -102,8 +102,8 @@ fun ScannerScreen(
     Scaffold(
         topBar = {
             TopBar(
-//                title = stringResource(R.string.scanner_title),
-                title = state.phase.toString(), onBack = onBack, action = {
+                title = stringResource(R.string.scanner_title),
+                onBack = onBack, action = {
                     if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING) IconButton(
                         onClick = viewModel::toggleFlash
                     ) {
@@ -123,11 +123,11 @@ fun ScannerScreen(
                 .padding(innerPadding)
         ) {
             when (state.phase) {
-                ScannerPhase.VIEWFINDER, ScannerPhase.SCANNING -> ScannerViewfinderContent(
+                ScannerPhase.VIEWFINDER -> ScannerViewfinderContent(
                     hasPermission = hasPermission,
                     flashMode = state.flash,
                     shutterToken = shutterToken,
-                    scanning = state.phase == ScannerPhase.SCANNING,
+                    scanning = false,
                     onCaptured = { viewModel.onCaptured(it, context) },
                     onGrantPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
                     onShutter = { shutterToken++ },
@@ -138,7 +138,7 @@ fun ScannerScreen(
                     },
                 )
 
-                ScannerPhase.RESULT -> ScannerResultContent(
+                ScannerPhase.RESULT, ScannerPhase.SCANNING -> ScannerResultContent(
                     capturedPath = state.capturedPath,
                     scanOcrState = scanOcrState,
                     onApprove = viewModel::approve,

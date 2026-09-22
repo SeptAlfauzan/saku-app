@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.test.core.app.ApplicationProvider
 import com.septaalfauzan.saku.SubTrackApplication
@@ -72,14 +73,14 @@ class AppShareIntentNavigationTest {
                 ScannerScreen(
                     saveJsonEdit = null,
                     onBack = {},
+                    onDone = {},
                     onEdit = {},
                     sharedImagUri = sharedImageUri().toString(),
                 )
             }
         }
         compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodesWithText("SCANNING").fetchSemanticsNodes().isNotEmpty() ||
-                compose.onAllNodesWithText("RESULT").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithTag("rescan_button").fetchSemanticsNodes().isNotEmpty()
         }
     }
 }
