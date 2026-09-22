@@ -101,6 +101,15 @@ android {
     }
 }
 
+sentry {
+    autoInstallation {
+        enabled.set(false)
+    }
+    org.set(System.getenv("SENTRY_ORG") ?: "")
+    projectName.set(System.getenv("SENTRY_PROJECT") ?: "")
+    authToken.set(System.getenv("SENTRY_AUTH_TOKEN") ?: "")
+}
+
 val check16kPageSize by tasks.registering(Check16kPageSizeTask::class) {
     group = "verification"
     description = "Verifies native libraries (.so) in release APK/AAB are aligned to 16 KB page sizes."
