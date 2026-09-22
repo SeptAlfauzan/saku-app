@@ -32,7 +32,7 @@ class ScanPrefillTest {
         val prefill = ScanPrefill.fromReceipt(receipt, fallbackMillis = 123L)
         assertEquals(30000L, prefill.amount)
         assertEquals("Toko Maju", prefill.merchant)
-        assertEquals("2x Nasi Goreng (Rp. 20.000)", prefill.note)
+        assertEquals("2x Nasi Goreng (Rp20.000)", prefill.note)
         val expectedDate = LocalDate(2026, 9, 6)
             .atStartOfDayIn(TimeZone.currentSystemDefault())
             .toEpochMilliseconds()

@@ -2,6 +2,7 @@ package com.septaalfauzan.saku.ui.scanner
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.codec.binary.Base64
@@ -61,6 +62,7 @@ class ScannerViewModel(
     val scanOcrState: StateFlow<StateUi<Receipt>> = _scanOcrState.asStateFlow()
     private val _event = MutableStateFlow<ScannerEvent?>(null)
     val event: StateFlow<ScannerEvent?> = _event.asStateFlow()
+    private var handledSharedUri: String? = null
 
     fun onCaptured(path: String, context: Context) {
         _state.value = _state.value.copy(phase = ScannerPhase.SCANNING, capturedPath = path)
@@ -72,6 +74,9 @@ class ScannerViewModel(
     }
 
     fun onCaptured(uri: Uri, context: Context) {
+        val key = uri.toString()
+        if (handledSharedUri == key) return
+        handledSharedUri = key
         val file = contentUriToTempFile(context, uri)
         if (file == null) {
             _state.value = _state.value.copy(
@@ -220,6 +225,14 @@ class ScannerViewModel(
 
             else -> return
         }
+    }
 
+
+    fun onCaptureSharedImage(raw: String, context: Context) {
+        _state.value = _state.value.copy(phase = ScannerPhase.RESULT)
+        viewModelScope.launch(Dispatchers.IO) {
+            val uri = raw.toUri()
+            onCaptured(uri, context)
+        }
     }
 }

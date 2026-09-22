@@ -24,7 +24,7 @@ class ReceiptHelpersTest {
 
     @Test
     fun itemsBecomePricedNoteWithQuantityPrefix() {
-        assertEquals("2x Nasi Goreng (Rp. 20.000), 1x Ayam Bakar (Rp. 10.000)", receipt.toItemsNote())
+        assertEquals("2x Nasi Goreng (Rp20.000), 1x Ayam Bakar (Rp10.000)", receipt.toItemsNote())
     }
 
     @Test

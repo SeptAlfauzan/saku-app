@@ -10,8 +10,8 @@ import com.septaalfauzan.saku.domain.usecase.ObservePending
 import com.septaalfauzan.saku.domain.usecase.ObserveTrackingEnabled
 import com.septaalfauzan.saku.domain.usecase.ObserveTransactions
 import com.septaalfauzan.saku.extension.isToday
-import com.septaalfauzan.saku.ui.tracking.TrackingUiState
 import com.septaalfauzan.saku.util.monthLabel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +37,7 @@ class DashboardViewModel(
     observeTrackingEnabled: ObserveTrackingEnabled,
 ) : ViewModel() {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<DashboardUiState> = observeTransactions()
         .map { txs -> txs.filter { it.status == TransactionStatus.CONFIRMED } }
         .flatMapLatest { allTx ->

@@ -21,7 +21,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -163,13 +166,14 @@ internal fun ScannerResultContent(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(SakuDp.spaceXs)) {
             PillButton(
-                stringResource(R.string.scanner_approve_log),
-                onApprove,
+                stringResource(R.string.scanner_rescan),
+                onRetake,
                 modifier = Modifier
                     .weight(1f)
-                    .testTag("approve_button"),
+                    .testTag("rescan_button"),
                 enabled = !onScanningState,
-                variant = PillButtonVariant.ACCENT
+                icon = Icons.Default.CameraAlt,
+                variant = PillButtonVariant.PRIMARY
             )
             PillButton(
                 stringResource(R.string.common_edit),
@@ -178,18 +182,21 @@ internal fun ScannerResultContent(
                 modifier = Modifier
                     .weight(1f)
                     .testTag("edit_button"),
+                icon = Icons.Default.Edit,
                 variant = PillButtonVariant.GHOST,
             )
         }
         PillButton(
-            stringResource(R.string.scanner_rescan),
-            onRetake,
+            stringResource(R.string.scanner_approve_log),
+            onApprove,
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag("rescan_button"),
+                .testTag("approve_button"),
             enabled = !onScanningState,
-            variant = PillButtonVariant.PRIMARY
+            icon = Icons.Default.Check,
+            variant = PillButtonVariant.ACCENT
         )
+
     }
 
     capturedPath?.let { path ->

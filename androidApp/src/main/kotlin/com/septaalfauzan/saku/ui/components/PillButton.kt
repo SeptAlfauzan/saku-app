@@ -61,16 +61,16 @@ fun PillButton(
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (text != null) {
+                Text(text, style = type.labelMd, color = content)
+            }
             if (icon != null) {
                 Icon(
                     icon,
                     contentDescription = null,
                     tint = content,
-                    modifier = Modifier.padding(end = if (text != null) 8.dp else 0.dp)
+                    modifier = Modifier.padding(start = if (text != null) 8.dp else 0.dp)
                 )
-            }
-            if (text != null) {
-                Text(text, style = type.labelMd, color = content)
             }
         }
     }
