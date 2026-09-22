@@ -36,3 +36,20 @@ class RealSentryReporter : SentryReporter {
 
 fun createSentryReporter(enabled: Boolean): SentryReporter =
     if (enabled) RealSentryReporter() else NoopSentryReporter
+
+fun captureThrowable(t: Throwable) {
+    if (Sentry.isEnabled()) {
+        Sentry.captureException(t)
+    }
+}
+
+fun addDecodeBreadcrumb() {
+    if (Sentry.isEnabled()) {
+        Sentry.addBreadcrumb(
+            Breadcrumb().apply {
+                message = "scan prefill decode failed"
+                category = "scan"
+            },
+        )
+    }
+}

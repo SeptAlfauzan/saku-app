@@ -23,8 +23,10 @@ suspend inline fun <reified T> HttpResponse.handleResponse(): NetworkResult<T> {
                 val result = if (T::class == Unit::class) Unit as T else body<T>()
                 NetworkResult.Success(result)
             } catch (e: ContentConvertException) {
+                com.septaalfauzan.saku.sentry.captureThrowable(e)
                 NetworkResult.Failure("Serialization error: ${e.message}")
             } catch (e: SerializationException) {
+                com.septaalfauzan.saku.sentry.captureThrowable(e)
                 NetworkResult.Failure("Serialization error: ${e.message}")
             }
         }
