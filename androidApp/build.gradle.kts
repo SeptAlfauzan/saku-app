@@ -59,7 +59,7 @@ android {
         buildConfigField(
             "String",
             "SENTRY_DSN",
-            "\"${System.getenv("SENTRY_DSN") ?: ""}\"",
+            "\"${System.getenv("SENTRY_DSN") ?: providers.gradleProperty("SENTRY_DSN").orElse("").get()}\"",
         )
     }
     packaging {
