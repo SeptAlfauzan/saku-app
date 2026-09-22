@@ -31,6 +31,7 @@ suspend inline fun <reified T> HttpResponse.handleResponse(): NetworkResult<T> {
             }
         }
         else -> {
+            com.septaalfauzan.saku.sentry.addNetworkFailureBreadcrumb("HTTP ${status.value}")
             val errorBody = bodyAsText()
             val errorMessage = try {
                 errorJson.decodeFromString<ErrorResponse>(errorBody).error
@@ -50,6 +51,7 @@ suspend inline fun <reified T> HttpClient.safeRequest(
         val response = block()
         response.handleResponse<T>()
     } catch (e: Exception) {
+        com.septaalfauzan.saku.sentry.addNetworkFailureBreadcrumb(e.message ?: "network error")
         NetworkResult.Failure("Network error: ${e.message}")
     }
 }

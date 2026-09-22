@@ -53,3 +53,15 @@ fun addDecodeBreadcrumb() {
         )
     }
 }
+
+fun addNetworkFailureBreadcrumb(reason: String) {
+    if (Sentry.isEnabled()) {
+        Sentry.addBreadcrumb(
+            Breadcrumb().apply {
+                message = "network request failed"
+                category = "network"
+                setData("reason", reason)
+            },
+        )
+    }
+}
