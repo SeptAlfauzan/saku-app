@@ -4,6 +4,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.sentryAndroid)
 }
 
 kotlin {
@@ -36,6 +37,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.exifinterface)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.koin.test)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.testCore)
@@ -54,6 +56,11 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
         versionName = (project.findProperty("versionName") as String?) ?: "1.0"
+        buildConfigField(
+            "String",
+            "SENTRY_DSN",
+            "\"${System.getenv("SENTRY_DSN") ?: ""}\"",
+        )
     }
     packaging {
         resources {
@@ -84,6 +91,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     testOptions {
         unitTests {
@@ -91,6 +99,15 @@ android {
             isReturnDefaultValues = true
         }
     }
+}
+
+sentry {
+    autoInstallation {
+        enabled.set(false)
+    }
+    org.set(System.getenv("SENTRY_ORG") ?: "")
+    projectName.set(System.getenv("SENTRY_PROJECT") ?: "")
+    authToken.set(System.getenv("SENTRY_AUTH_TOKEN") ?: "")
 }
 
 val check16kPageSize by tasks.registering(Check16kPageSizeTask::class) {

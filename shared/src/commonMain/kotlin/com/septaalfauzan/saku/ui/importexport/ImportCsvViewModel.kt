@@ -7,6 +7,8 @@ import com.septaalfauzan.saku.domain.importexport.ImportAction
 import com.septaalfauzan.saku.domain.importexport.ImportTransactions
 import com.septaalfauzan.saku.domain.importexport.TransactionDraft
 import com.septaalfauzan.saku.domain.importexport.UndoSnapshot
+import com.septaalfauzan.saku.sentry.NoopSentryReporter
+import com.septaalfauzan.saku.sentry.SentryReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +47,7 @@ sealed interface ImportCsvUiState {
 
 class ImportCsvViewModel(
     private val importTransactions: ImportTransactions,
+    private val reporter: SentryReporter = NoopSentryReporter,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ImportCsvUiState>(ImportCsvUiState.Idle)
@@ -57,7 +60,7 @@ class ImportCsvViewModel(
         _uiState.value = ImportCsvUiState.Parsing(fileName)
         viewModelScope.launch(Dispatchers.Default) {
             runCatching {
-                val text = bytes.toString(Charsets.UTF_8)
+                val text = bytes.decodeToString()
                 val parsed = importTransactions.parse(text)
                 if (parsed.errors.isNotEmpty()) {
                     ImportCsvUiState.Preview(
@@ -75,8 +78,17 @@ class ImportCsvViewModel(
                         sample = parsed.drafts.take(20),
                     )
                 }
-            }.onSuccess { state -> _uiState.value = state }
+            }.onSuccess { state ->
+                if (state is ImportCsvUiState.Preview) {
+                    reporter.addBreadcrumb(
+                        "csv parsed new=${state.newCount} update=${state.updateCount} dup=${state.duplicateCount} errors=${state.errors.size}",
+                        "import",
+                    )
+                }
+                _uiState.value = state
+            }
                 .onFailure { error ->
+                    reporter.captureException(error)
                     _uiState.value = ImportCsvUiState.Failed(error.message ?: "")
                 }
         }
@@ -106,8 +118,17 @@ class ImportCsvViewModel(
                     skippedDuplicates = if (preview.skipDuplicates) preview.duplicateCount else 0,
                     snapshot = result.snapshot,
                 )
-            }.onSuccess { state -> _uiState.value = state }
+            }.onSuccess { state ->
+                if (state is ImportCsvUiState.Done) {
+                    reporter.addBreadcrumb(
+                        "import applied new=${state.newCount} update=${state.updateCount} skipped=${state.skippedDuplicates}",
+                        "import",
+                    )
+                }
+                _uiState.value = state
+            }
                 .onFailure { error ->
+                    reporter.captureException(error)
                     _uiState.value = ImportCsvUiState.Failed(error.message ?: "")
                 }
         }
@@ -117,6 +138,7 @@ class ImportCsvViewModel(
         val done = _uiState.value as? ImportCsvUiState.Done ?: return
         viewModelScope.launch {
             runCatching { importTransactions.undo(done.snapshot) }
+                .onFailure { reporter.captureException(it) }
             _uiState.value = ImportCsvUiState.Idle
         }
     }

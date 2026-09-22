@@ -7,6 +7,8 @@ import com.septaalfauzan.saku.domain.importexport.ExportTransactions
 import com.septaalfauzan.saku.domain.model.Category
 import com.septaalfauzan.saku.domain.model.TransactionType
 import com.septaalfauzan.saku.domain.repository.TransactionRepository
+import com.septaalfauzan.saku.sentry.NoopSentryReporter
+import com.septaalfauzan.saku.sentry.SentryReporter
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +39,7 @@ data class ExportCsvUiState(
 class ExportCsvViewModel(
     private val exportTransactions: ExportTransactions,
     private val transactionRepository: TransactionRepository,
+    private val reporter: SentryReporter = NoopSentryReporter,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ExportCsvUiState())
@@ -90,9 +93,14 @@ class ExportCsvViewModel(
                     ),
                 )
             }.onSuccess { result ->
+                reporter.addBreadcrumb(
+                    "csv exported rows=${result.exportedCount}",
+                    "export",
+                )
                 _uiState.value = _uiState.value.copy(building = false)
                 onResult(result)
-            }.onFailure {
+            }.onFailure { error ->
+                reporter.captureException(error)
                 _uiState.value = _uiState.value.copy(
                     building = false,
                     failed = true,

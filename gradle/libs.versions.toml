@@ -30,6 +30,8 @@ androidx-sqlite = "2.7.0"
 uiUnit = "1.12.0"
 androidxComposeTestManifest = "1.11.1"
 firebaseCrashlyticsBuildtools = "3.0.8"
+sentry = "0.27.0"
+sentryAndroidGradle = "6.22.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -78,6 +80,7 @@ firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "fireb
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 compose-ui-testJunit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "composeMultiplatform" }
 compose-ui-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidxComposeTestManifest" }
+sentry-kmp = { module = "io.sentry:sentry-kotlin-multiplatform", version.ref = "sentry" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -88,3 +91,5 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room3 = { id = "androidx.room3", version.ref = "room3" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+sentryKmp = { id = "io.sentry.kotlin.multiplatform.gradle", version.ref = "sentry" }
+sentryAndroid = { id = "io.sentry.android.gradle", version.ref = "sentryAndroidGradle" }

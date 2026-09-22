@@ -16,8 +16,12 @@ import com.septaalfauzan.saku.domain.repository.TransactionRepository
 import com.septaalfauzan.saku.notification.duplicate.DuplicateDetector
 import com.septaalfauzan.saku.notification.engine.NotificationParserEngine
 import com.septaalfauzan.saku.notification.model.NotificationData
+import com.septaalfauzan.saku.notification.model.ParsedTransaction
+import com.septaalfauzan.saku.notification.provider.NotificationParser
 import com.septaalfauzan.saku.notification.provider.ParserRegistry
 import com.septaalfauzan.saku.notification.usecase.ProcessNotificationUseCase
+import com.septaalfauzan.saku.sentry.NoopSentryReporter
+import com.septaalfauzan.saku.sentry.SentryReporter
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -129,7 +133,12 @@ class ProcessNotificationUseCaseTest {
         notificationId = 7,
     )
 
-    private fun useCase(repo: TransactionRepository, settings: NotificationSettingsRepository, dupes: List<Transaction> = emptyList()): ProcessNotificationUseCase {
+    private fun useCase(
+        repo: TransactionRepository,
+        settings: NotificationSettingsRepository,
+        dupes: List<Transaction> = emptyList(),
+        reporter: SentryReporter = NoopSentryReporter,
+    ): ProcessNotificationUseCase {
         val registry = ParserRegistry()
         registry.rebuild(
             listOf(NotificationSource("com.bca", "bca", enabled = true)),
@@ -141,6 +150,7 @@ class ProcessNotificationUseCaseTest {
             repository = repo,
             duplicateDetector = DuplicateDetector(repo),
             parserRegistry = registry,
+            reporter = reporter,
         )
     }
 
@@ -212,5 +222,63 @@ class ProcessNotificationUseCaseTest {
         ))
         useCase(repo, bcaSettings()).invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
         assertTrue(repo.inserted.isEmpty())
+    }
+
+    private class FakeSentryReporter : SentryReporter {
+        override val enabled: Boolean = true
+        val exceptions = mutableListOf<Throwable>()
+        val messages = mutableListOf<String>()
+        val breadcrumbs = mutableListOf<String>()
+        override fun captureException(t: Throwable) { exceptions += t }
+        override fun captureMessage(message: String) { messages += message }
+        override fun addBreadcrumb(message: String, category: String?) { breadcrumbs += message }
+    }
+
+    private class SimulatedFailException : Exception("simulated parse failure")
+
+    private fun failingEngine(): NotificationParserEngine = NotificationParserEngine(
+        ParserRegistry(fallback = object : NotificationParser {
+            override fun canParse(data: NotificationData): Boolean = true
+            override fun parse(data: NotificationData): ParsedTransaction? = throw SimulatedFailException()
+        }),
+    )
+
+    @Test
+    fun `records breadcrumb when transaction created`() {
+        val reporter = FakeSentryReporter()
+        val repo = FakeTransactionRepository()
+        val settings = bcaSettings()
+        val useCase = useCase(repo, settings, reporter = reporter)
+        runTest {
+            useCase.invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
+        }
+        assertTrue(
+            reporter.breadcrumbs.any { it.startsWith("transaction created") },
+            "expected insert breadcrumb, got ${reporter.breadcrumbs}"
+        )
+    }
+
+    @Test
+    fun `captures exception on parse throw`() {
+        val reporter = FakeSentryReporter()
+        val repo = FakeTransactionRepository()
+        val settings = bcaSettings()
+        val parserRegistry = ParserRegistry()
+        val duplicateDetector = DuplicateDetector(repo)
+        val useCase = ProcessNotificationUseCase(
+            engine = failingEngine(),
+            settings = settings,
+            repository = repo,
+            duplicateDetector = duplicateDetector,
+            parserRegistry = parserRegistry,
+            reporter = reporter,
+        )
+        runTest {
+            useCase.invoke(bcaNotification("Pembayaran Rp150.000 berhasil di TOKOPEDIA"))
+        }
+        assertTrue(
+            reporter.exceptions.any { it is SimulatedFailException },
+            "expected parse exception captured, got ${reporter.exceptions}"
+        )
     }
 }

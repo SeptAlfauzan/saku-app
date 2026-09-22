@@ -35,8 +35,13 @@ data class ScanPrefill(
                 ?: fallbackMillis,
         )
 
-        fun decode(json: String): ScanPrefill? =
-            runCatching { Json.decodeFromString(serializer(), json) }.getOrNull()
+        fun decode(json: String): ScanPrefill? {
+            val result = runCatching { Json.decodeFromString(serializer(), json) }.getOrNull()
+            if (result == null) {
+                com.septaalfauzan.saku.sentry.addDecodeBreadcrumb()
+            }
+            return result
+        }
     }
 }
 
