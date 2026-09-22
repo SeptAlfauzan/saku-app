@@ -107,7 +107,7 @@ git commit -m "build: add sentry kmp and android gradle plugins"
 **Interfaces:**
 - Consumes: nothing (pure SDK API).
 - Produces:
-  - `fun initSentry(dsn: String)` (commonMain, callable from Android Kotlin and iOS Swift via `SentrySetupKt.initSentry`... note: file `SentryInit.kt` → generated Swift class name `SentryInitKt`; used from Swift as `SentryInitKt.initSentry(dsn:)`).
+  - `fun initSentry(dsn: String)` (commonMain, callable from Android Kotlin and iOS Swift via `SentrySetupKt.initSentry`... note: file `SentryInit.kt` → generated Swift class name `SentryInitKt`; verified at verify-gate (2026-09-22) that Kotlin/Native exports it as `SentryInitKt.doInitSentry(dsn:)` — top-level functions beginning with `init` are `do`-prefixed to avoid the ObjC initializer clash; used from Swift as `SentryInitKt.doInitSentry(dsn:)`).
   - `internal expect fun platformOptionsConfiguration(dsn: String): PlatformOptionsConfiguration`
   - `interface SentryReporter { val enabled: Boolean; fun captureException(t: Throwable); fun captureMessage(message: String); fun addBreadcrumb(message: String, category: String? = null) }`
   - `object NoopSentryReporter : SentryReporter`
@@ -424,7 +424,7 @@ git commit -m "feat: wire sentry dsn buildconfig and app init on android"
 
 **Interfaces:**
 - Consumes: `initSentry(dsn: String)` exposed to Swift (Task 2).
-- Produces: `SENTRY_DSN` xcconfig var; `SENTRY_DSN` Info.plist key; `iOSApp.init()` calls `SentryInitKt.initSentry(dsn:)` once.
+- Produces: `SENTRY_DSN` xcconfig var; `SENTRY_DSN` Info.plist key; `iOSApp.init()` calls `SentryInitKt.doInitSentry(dsn:)` once.
 
 - [ ] **Step 1: Add DSN to xcconfig**
 
@@ -457,7 +457,7 @@ import Shared
 struct iOSApp: App {
     init() {
         if let dsn = Bundle.main.object(forInfoDictionaryKey: "SENTRY_DSN") as? String {
-            SentryInitKt.initSentry(dsn: dsn)
+            SentryInitKt.doInitSentry(dsn: dsn)
         }
     }
     var body: some Scene {

@@ -5,7 +5,7 @@ import Shared
 struct iOSApp: App {
     init() {
         if let dsn = Bundle.main.object(forInfoDictionaryKey: "SENTRY_DSN") as? String {
-            SentryInitKt.initSentry(dsn: dsn)
+            SentryInitKt.doInitSentry(dsn: dsn)
         }
     }
     var body: some Scene {
