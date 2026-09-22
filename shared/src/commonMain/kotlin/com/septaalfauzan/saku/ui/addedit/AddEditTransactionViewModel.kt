@@ -59,7 +59,7 @@ class AddEditTransactionViewModel(
             merchant = fields.merchant,
             note = fields.note,
             occurredAtMillis = fields.occurredAtMillis,
-            categories = categories,
+            categories = categories.filter { it.type == fields.type },
             amountError = fields.amountError,
             categoryError = fields.categoryError,
             canSave = recomputeCanSave(fields),
