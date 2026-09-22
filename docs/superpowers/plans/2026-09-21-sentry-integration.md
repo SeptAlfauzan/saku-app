@@ -927,3 +927,12 @@ Expected: BUILD SUCCEEDED.
 - Spec coverage: init+entry wiring (Tasks 2, 3, 4), auto features incl. ANR (native-options init, `anrEnabled`) and logs (`logs.isEnabled`), breadcrumbs/manual capture (Tasks 5, 6), CI (Task 8), symbol upload (Task 7). All spec sections mapped.
 - Placeholders: none — every code step has full source.
 - Type consistency: `initSentry(dsn)`, `SentryReporter`, `NoopSentryReporter`, `RealSentryReporter`, `createSentryReporter(Boolean)`, `sentryModule`, `captureThrowable`, `addDecodeBreadcrumb` are defined once in Task 2 and referenced consistently in Tasks 3, 5, 6.
+
+## Post-review additions (2026-09-22, user-approved)
+
+Three spec-only items verified absent during the whole-branch review and implemented as a followup:
+- **beforeSend PII scrub hook** (spec §Arch line 14): registered in both platform config lambdas — Android `SentryAndroidOptions.beforeSend` pass-through, iOS Cocoa `SentryOptions.beforeSend` real scrub (home/tmp-path-prefixed exception `value()` → redacted).
+- **init breadcrumb** (spec §Instr line 32): `SentryInit.kt` success path only — "sentry initialized" / category "lifecycle".
+- **generic network-failure breadcrumb** (spec §Instr line 35): `addNetworkFailureBreadcrumb(reason)` on the non-2xx + `safeRequest` exception branches; serialization branches keep exception capture.
+
+Also corrected at verify-gate: Swift export name is `SentryInitKt.doInitSentry(dsn:)` (K/N `init`-prefix rule). Breadcrumb-scope decision: per-notification breadcrumb fires on transaction creation only (plan interpretation accepted).
