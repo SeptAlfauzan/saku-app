@@ -37,12 +37,14 @@ import com.septaalfauzan.saku.ui.components.TopBar
 import com.septaalfauzan.saku.ui.designsystem.SakuIcons
 import com.septaalfauzan.saku.ui.designsystem.SakuTheme
 import java.io.File
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScannerScreen(
     saveJsonEdit: String?,
-    onBack: () -> Unit, onEdit: (Receipt) -> Unit,
+    onBack: () -> Unit,
+    onEdit: (Receipt) -> Unit,
     sharedImagUri: String? = null,
 ) {
     val context = LocalContext.current
@@ -73,13 +75,14 @@ fun ScannerScreen(
         if (event != null) viewModel.consumeEvent()
     }
     LaunchedEffect(Unit) {
-        if(saveJsonEdit == null) return@LaunchedEffect
+        if (saveJsonEdit == null) return@LaunchedEffect
         viewModel.updateStateFromEditValue(saveJsonEdit)
     }
 
     LaunchedEffect(sharedImagUri) {
+        if(state.phase == ScannerPhase.RESULT) return@LaunchedEffect
         sharedImagUri?.takeIf { it.isNotBlank() }?.let { raw ->
-            val uri = Uri.parse(raw)
+            val uri = raw.toUri()
             viewModel.onCaptured(uri, context)
         }
     }
@@ -87,8 +90,7 @@ fun ScannerScreen(
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
-            context,
-                Manifest.permission.CAMERA
+                context, Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED,
         )
     }
@@ -100,24 +102,21 @@ fun ScannerScreen(
     Scaffold(
         topBar = {
             TopBar(
-                title = stringResource(R.string.scanner_title),
-                onBack = onBack,
-                action = {
-                    if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING)
-                        IconButton(onClick = viewModel::toggleFlash) {
-                            Icon(
-                                if (state.flash == ScannerFlash.OFF) SakuIcons.FlashOff else SakuIcons.FlashOn,
-                                contentDescription = stringResource(
-                                    R.string.scanner_flash_format,
-                                    state.flash
-                                ),
-                                tint = Color.White,
-                            )
-                        }
-                }
-            )
-        }
-    ) { innerPadding ->
+//                title = stringResource(R.string.scanner_title),
+                title = state.phase.toString(), onBack = onBack, action = {
+                    if (state.phase == ScannerPhase.VIEWFINDER || state.phase == ScannerPhase.SCANNING) IconButton(
+                        onClick = viewModel::toggleFlash
+                    ) {
+                        Icon(
+                            if (state.flash == ScannerFlash.OFF) SakuIcons.FlashOff else SakuIcons.FlashOn,
+                            contentDescription = stringResource(
+                                R.string.scanner_flash_format, state.flash
+                            ),
+                            tint = Color.White,
+                        )
+                    }
+                })
+        }) { innerPadding ->
         Box(
             Modifier
                 .fillMaxSize()

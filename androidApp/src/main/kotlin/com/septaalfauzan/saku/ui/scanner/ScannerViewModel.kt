@@ -61,6 +61,7 @@ class ScannerViewModel(
     val scanOcrState: StateFlow<StateUi<Receipt>> = _scanOcrState.asStateFlow()
     private val _event = MutableStateFlow<ScannerEvent?>(null)
     val event: StateFlow<ScannerEvent?> = _event.asStateFlow()
+    private var handledSharedUri: String? = null
 
     fun onCaptured(path: String, context: Context) {
         _state.value = _state.value.copy(phase = ScannerPhase.SCANNING, capturedPath = path)
@@ -72,6 +73,9 @@ class ScannerViewModel(
     }
 
     fun onCaptured(uri: Uri, context: Context) {
+        val key = uri.toString()
+        if (handledSharedUri == key) return
+        handledSharedUri = key
         val file = contentUriToTempFile(context, uri)
         if (file == null) {
             _state.value = _state.value.copy(
