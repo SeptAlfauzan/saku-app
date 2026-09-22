@@ -57,7 +57,7 @@ class ImportCsvViewModel(
         _uiState.value = ImportCsvUiState.Parsing(fileName)
         viewModelScope.launch(Dispatchers.Default) {
             runCatching {
-                val text = bytes.toString(Charsets.UTF_8)
+                val text = bytes.decodeToString()
                 val parsed = importTransactions.parse(text)
                 if (parsed.errors.isNotEmpty()) {
                     ImportCsvUiState.Preview(
