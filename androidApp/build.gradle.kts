@@ -59,7 +59,7 @@ android {
         buildConfigField(
             "String",
             "SENTRY_DSN",
-            "\"${System.getenv("SENTRY_DSN") ?: providers.gradleProperty("SENTRY_DSN").orElse("").get()}\"",
+            "\"${resolveSentryDsn()}\"",
         )
     }
     packaging {
@@ -123,4 +123,15 @@ val check16kPageSize by tasks.registering(Check16kPageSizeTask::class) {
     } ?: System.getenv("ANDROID_HOME")
         ?: error("Android SDK not found. Set sdk.dir in local.properties or ANDROID_HOME.")
     sdkDir.set(file(sdkDirValue))
+}
+
+fun resolveSentryDsn(): String {
+    System.getenv("SENTRY_DSN")?.takeIf { it.isNotBlank() }?.let { return it }
+    val localProps = rootProject.file("local.properties")
+    if (localProps.exists()) {
+        val props = Properties()
+        localProps.inputStream().use { props.load(it) }
+        return props.getProperty("sentry.dsn").orEmpty()
+    }
+    return ""
 }
