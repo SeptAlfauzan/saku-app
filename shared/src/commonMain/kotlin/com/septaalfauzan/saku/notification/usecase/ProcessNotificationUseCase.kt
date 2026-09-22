@@ -11,6 +11,8 @@ import com.septaalfauzan.saku.notification.duplicate.DuplicateDetector
 import com.septaalfauzan.saku.notification.engine.NotificationParserEngine
 import com.septaalfauzan.saku.notification.model.NotificationData
 import com.septaalfauzan.saku.notification.provider.ParserRegistry
+import com.septaalfauzan.saku.sentry.NoopSentryReporter
+import com.septaalfauzan.saku.sentry.SentryReporter
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -22,6 +24,7 @@ class ProcessNotificationUseCase(
     private val repository: TransactionRepository,
     private val duplicateDetector: DuplicateDetector,
     private val parserRegistry: ParserRegistry,
+    private val reporter: SentryReporter = NoopSentryReporter,
     private val clock: () -> Instant = { Clock.System.now() },
 ) {
     private var rebuildDone = false
@@ -38,7 +41,12 @@ class ProcessNotificationUseCase(
             .any { it.packageName == notification.packageName && it.enabled }
         if (!enabled) return
 
-        val parsed = engine.process(notification) ?: return
+        val parsed = try {
+            engine.process(notification) ?: return
+        } catch (e: Throwable) {
+            reporter.captureException(e)
+            return
+        }
         val type = parsed.type ?: return
         val amount = parsed.amount ?: return
 
@@ -74,6 +82,7 @@ class ProcessNotificationUseCase(
                 updatedAt = now,
             ),
         )
+        reporter.addBreadcrumb("transaction created type=${type} amount=${amount}", "notification")
     }
 
     private suspend fun rebuildParserRegistry() {
