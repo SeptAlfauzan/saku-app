@@ -13,6 +13,12 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions ORDER BY occurredAtMillis DESC")
     fun observeAll(): Flow<List<TransactionEntity>>
 
+    @Query("SELECT * FROM transactions WHERE occurredAtMillis >= :startDateMils AND occurredAtMillis <= :endDateMils ORDER BY occurredAtMillis DESC")
+    fun observeAll(
+        startDateMils: Long,
+        endDateMils: Long
+    ) : Flow<List<TransactionEntity>>
+
     @Query("SELECT * FROM transactions WHERE id = :id")
     suspend fun getById(id: String): TransactionEntity?
 
@@ -39,6 +45,11 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions")
     suspend fun getAll(): List<TransactionEntity>
+    @Query("SELECT * FROM transactions WHERE occurredAtMillis >= :startDateMils AND occurredAtMillis <= :endDateMils")
+    suspend fun getAll(
+        startDateMils: Long,
+        endDateMils: Long
+    ): List<TransactionEntity>
 
     @Query("DELETE FROM transactions WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<String>)

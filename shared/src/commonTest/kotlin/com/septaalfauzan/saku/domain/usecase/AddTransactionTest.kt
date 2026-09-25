@@ -18,6 +18,7 @@ import kotlin.test.assertNull
 
 private class FakeTransactionRepository : TransactionRepository {
     override fun observeTransactions(): Flow<List<Transaction>> = flowOf(emptyList())
+    override fun observeTransactions(startDateMils: Long, endDateMils: Long): Flow<List<Transaction>> = flowOf(emptyList())
     override fun observeCategories(): Flow<List<Category>> = flowOf(emptyList())
     override suspend fun insert(transaction: Transaction) = Unit
     override suspend fun update(transaction: Transaction) = Unit
@@ -30,6 +31,7 @@ private class FakeTransactionRepository : TransactionRepository {
         withinEndMillis: Long,
     ): Transaction? = null
     override suspend fun getAll(): List<Transaction> = emptyList()
+    override suspend fun getAll(startDateMils: Long, endDateMils: Long): List<Transaction> = emptyList()
     override suspend fun applyImport(changes: List<Transaction>): ApplyResult =
         ApplyResult(0, 0, UndoSnapshot(emptyList(), emptyMap()))
     override suspend fun undoImport(snapshot: UndoSnapshot) = Unit
