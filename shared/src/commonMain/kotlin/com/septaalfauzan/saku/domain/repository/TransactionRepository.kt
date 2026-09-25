@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface TransactionRepository {
     fun observeTransactions(): Flow<List<Transaction>>
+    fun observeTransactions(startDateMils: Long, endDateMils: Long): Flow<List<Transaction>>
     fun observeCategories(): Flow<List<Category>>
     suspend fun insert(transaction: Transaction)
     suspend fun update(transaction: Transaction)
@@ -22,6 +23,7 @@ interface TransactionRepository {
         withinEndMillis: Long,
     ): Transaction?
     suspend fun getAll(): List<Transaction>
+    suspend fun getAll(startDateMils: Long, endDateMils: Long): List<Transaction>
     suspend fun applyImport(changes: List<Transaction>): ApplyResult
     suspend fun undoImport(snapshot: UndoSnapshot)
 }

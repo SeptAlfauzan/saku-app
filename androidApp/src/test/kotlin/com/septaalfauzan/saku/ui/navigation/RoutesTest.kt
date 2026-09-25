@@ -36,4 +36,25 @@ class RoutesTest {
     fun scannerPatternCarriesImageUriArg() {
         assertEquals("scanner?imageUri={imageUri}", Routes.SCANNER_PATTERN)
     }
+
+    @Test
+    fun successRouteHasTitleAndDescriptionParams() {
+        assertEquals("success?title={title}&description={description}", Routes.SUCCESS)
+    }
+
+    @Test
+    fun successScreenBuildsRouteWithArgs() {
+        assertEquals(
+            "success?title=Berhasil!&description=Transaksi berhasil ditambahkan.",
+            Routes.successScreen("Berhasil!", "Transaksi berhasil ditambahkan."),
+        )
+    }
+
+    @Test
+    fun successScreenHandlesNullArgs() {
+        assertEquals(
+            "success?title=Berhasil!&description=null",
+            Routes.successScreen("Berhasil!", null),
+        )
+    }
 }

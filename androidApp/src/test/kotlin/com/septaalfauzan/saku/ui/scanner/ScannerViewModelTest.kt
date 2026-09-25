@@ -336,12 +336,7 @@ class ScannerViewModelTest {
         assertIs<StateUi.Success<Receipt>>(vm.scanOcrState.value)
     }
 
-    @Test
-    fun onCapturedUnresolvableUriSurfacesMessage() = runTest(mainRule.dispatcher.scheduler) {
-        val ocr = FakeOcrRepository()
-        val tx = FakeTransactionRepository(categories = sampleCategories())
-        val vm = buildViewModel(ocr, tx)
-
+    private fun registerMissingAuthorityProvider() {
         // Robolectric's shadow returns an UnregisteredInputStream (throws on read) for an
         // unregistered content:// authority instead of a null stream, so register a provider
         // that yields no asset file; prod's openInputStream then resolves to null and the
@@ -359,6 +354,15 @@ class ScannerViewModelTest {
             AUTHORITY_MISSING,
             provider,
         )
+    }
+
+    @Test
+    fun onCapturedUnresolvableUriSurfacesMessage() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository()
+        val tx = FakeTransactionRepository(categories = sampleCategories())
+        val vm = buildViewModel(ocr, tx)
+
+        registerMissingAuthorityProvider()
         val uri = android.net.Uri.parse("content://$AUTHORITY_MISSING/images/1")
 
         vm.onCaptured(uri, context)
@@ -373,5 +377,42 @@ class ScannerViewModelTest {
             state.capturedPath,
             "no capture phase when the shared image cannot be opened",
         )
+    }
+
+    @Test
+    fun onCaptureSharedImageSetsResultPhaseImmediately() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository().apply { result = sampleReceipt() }
+        val tx = FakeTransactionRepository(categories = sampleCategories())
+        val vm = buildViewModel(ocr, tx)
+
+        // Registered authority resolves to a null stream (no throw on IO read),
+        // so the async shared-image path completes without an uncaught exception.
+        registerMissingAuthorityProvider()
+        val raw = "content://$AUTHORITY_MISSING/images/1"
+
+        vm.onCaptureSharedImage(raw, context)
+
+        assertEquals(ScannerPhase.RESULT, vm.state.value.phase)
+        advanceUntilIdle()
+        assertEquals(ScannerPhase.RESULT, vm.state.value.phase)
+    }
+
+    @Test
+    fun onCaptureSharedImageDedupDoesNotRerun() = runTest(mainRule.dispatcher.scheduler) {
+        val ocr = FakeOcrRepository().apply { result = sampleReceipt() }
+        val tx = FakeTransactionRepository(categories = sampleCategories())
+        val vm = buildViewModel(ocr, tx)
+
+        registerMissingAuthorityProvider()
+        val raw = "content://$AUTHORITY_MISSING/images/1"
+
+        vm.onCaptureSharedImage(raw, context)
+        assertEquals(ScannerPhase.RESULT, vm.state.value.phase)
+        advanceUntilIdle()
+
+        // Second call with same URI is deduped: phase stays RESULT
+        vm.onCaptureSharedImage(raw, context)
+        advanceUntilIdle()
+        assertEquals(ScannerPhase.RESULT, vm.state.value.phase)
     }
 }

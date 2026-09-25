@@ -74,6 +74,7 @@ class ProcessNotificationUseCaseTest {
     ) : TransactionRepository {
         val inserted = mutableListOf<Transaction>()
         override fun observeTransactions(): Flow<List<Transaction>> = flowOf(inserted.toList())
+        override fun observeTransactions(startDateMils: Long, endDateMils: Long): Flow<List<Transaction>> = flowOf(inserted.toList())
         override fun observeCategories(): Flow<List<Category>> = flowOf(emptyList())
         override fun observePending(): Flow<List<Transaction>> = flowOf(inserted.filter { it.status == TransactionStatus.PENDING_REVIEW })
         override suspend fun insert(transaction: Transaction) { inserted += transaction }
@@ -92,6 +93,7 @@ class ProcessNotificationUseCaseTest {
                     it.occurredAt.toEpochMilliseconds() in withinStartMillis..withinEndMillis
             }
         override suspend fun getAll(): List<Transaction> = inserted.toList()
+        override suspend fun getAll(startDateMils: Long, endDateMils: Long): List<Transaction> = inserted.toList()
         override suspend fun applyImport(changes: List<Transaction>): ApplyResult =
             ApplyResult(0, 0, UndoSnapshot(emptyList(), emptyMap()))
         override suspend fun undoImport(snapshot: UndoSnapshot) = Unit

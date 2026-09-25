@@ -36,6 +36,12 @@ class RoomTransactionRepository(
     override fun observeTransactions(): Flow<List<Transaction>> =
         transactionDao.observeAll().map { list -> list.map { it.toDomain() } }
 
+    override fun observeTransactions(
+        startDateMils: Long,
+        endDateMils: Long
+    ): Flow<List<Transaction>> =
+        transactionDao.observeAll(startDateMils, endDateMils).map { list -> list.map { it.toDomain() } }
+
     override fun observeCategories(): Flow<List<Category>> =
         flow {
             ensureSeeded()
@@ -90,29 +96,35 @@ class RoomTransactionRepository(
     override suspend fun getAll(): List<Transaction> =
         transactionDao.getAll().map { it.toDomain() }
 
-    override suspend fun applyImport(changes: List<Transaction>): ApplyResult = db.withWriteTransaction {
-        val existing = transactionDao.getAll().associateBy { it.id }
-        val created = mutableListOf<String>()
-        val updated = mutableListOf<String>()
-        val previous = mutableMapOf<String, TransactionEntity>()
-        changes.forEach { tx ->
-            val entity = tx.toEntity()
-            val current = existing[tx.id]
-            if (current != null) {
-                previous[tx.id] = current
-                transactionDao.update(entity)
-                updated += tx.id
-            } else {
-                transactionDao.insert(entity)
-                created += tx.id
+    override suspend fun getAll(
+        startDateMils: Long,
+        endDateMils: Long
+    ): List<Transaction> = transactionDao.getAll(startDateMils, endDateMils).map { it.toDomain() }
+
+    override suspend fun applyImport(changes: List<Transaction>): ApplyResult =
+        db.withWriteTransaction {
+            val existing = transactionDao.getAll().associateBy { it.id }
+            val created = mutableListOf<String>()
+            val updated = mutableListOf<String>()
+            val previous = mutableMapOf<String, TransactionEntity>()
+            changes.forEach { tx ->
+                val entity = tx.toEntity()
+                val current = existing[tx.id]
+                if (current != null) {
+                    previous[tx.id] = current
+                    transactionDao.update(entity)
+                    updated += tx.id
+                } else {
+                    transactionDao.insert(entity)
+                    created += tx.id
+                }
             }
+            ApplyResult(
+                newCount = created.size,
+                updateCount = updated.size,
+                snapshot = UndoSnapshot(created, previous.mapValues { it.value.toDomain() }),
+            )
         }
-        ApplyResult(
-            newCount = created.size,
-            updateCount = updated.size,
-            snapshot = UndoSnapshot(created, previous.mapValues { it.value.toDomain() }),
-        )
-    }
 
     override suspend fun undoImport(snapshot: UndoSnapshot) = db.withWriteTransaction {
         snapshot.previousById.forEach { (_, tx) -> transactionDao.update(tx.toEntity()) }
